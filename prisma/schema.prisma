@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  logo      String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  codes     Code[]
+
+
+  Conversation Conversation[]
+}
+
+model Code {
+  id   String @id @default(uuid())
+  code String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  used      Boolean  @default(false)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([code])
+  @@map("code")
+}
+
+model User {
+  id               String        @id @default(uuid())
+  clerkId         String        @unique
+  
+firstname String
+lastname  String?
+  email            String
+
+  image            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  role             UserRole      @default(BUYER)
+  companyId        String
+  company          Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bikeRequests     BikeRequest[] @relation("buyerRequests")
+  approvedRequests BikeRequest[] @relation("sellerRequests")
+  
+    subscription Subscription?
+
+  @@unique([email])
+  @@map("user")
+  Conversation Conversation[]
+
+}
+
+enum UserRole {
+  BUYER
+    SELLER
+  }
+
+model BikeRequest {
+  id       String @id @default(uuid())
+  buyerId  String
+  buyer    User   @relation("buyerRequests", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId String
+  seller   User   @relation("sellerRequests", fields: [sellerId], references: [id], onDelete: Cascade)
+url       String
+  bikeModel String
+  notes    String?
+  reason    String
+  status    BikeStatus @default(PENDING)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+
+  @@map("bike_request")
+}
+
+enum BikeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+
+// conversation with the ai about the company and the customer also known as the buyer only a seller can create a conversation
+
+model Conversation {
+  id            String   @id @default(uuid())
+
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  sellerId      String
+  seller        User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  messages      Message[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([companyId, sellerId])
+
+
+  @@map("conversation")
+}
+
+model Message {
+  id              String   @id @default(uuid())
+
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+
+
+  content         String
+  Role             MessageRole @default(USER) // USER or AI 
+  createdAt      DateTime @default(now())
+
+
+
+  @@map("message")
+} 
+
+enum MessageRole {
+  USER
+  AI
+}
+
+
+enum SUBSCRIPTION_PLAN {
+  PRO
+  FREE
+}
+
+model Subscription {
+  id         String            @id @default(uuid())
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String            @unique
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  plan       SUBSCRIPTION_PLAN @default(FREE)
+  customerId String?           @unique
+}
