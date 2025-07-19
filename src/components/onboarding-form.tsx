@@ -42,7 +42,7 @@ const OnboardingForm = ({ userEmail, firstName, lastName }: OnboardingFormProps)
     resolver: zodResolver(buyerSchema),
     defaultValues: {
       firstName,
-      lastName: lastName || "",
+      lastName: lastName || "user",
       email: userEmail,
       invitationCode: "",
     },
@@ -52,7 +52,7 @@ const OnboardingForm = ({ userEmail, firstName, lastName }: OnboardingFormProps)
     resolver: zodResolver(sellerSchema),
     defaultValues: {
       firstName: firstName || "",
-      lastName: lastName || "",
+      lastName: lastName || "user",
       email: userEmail,
       companyName: "",
       companyWebsite: "",
