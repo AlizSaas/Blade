@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🧠 Blade – AI Assistant for Sellers
+Blade is a modern SaaS platform that gives sellers (from a motorcycle dealership or similar business) an AI-powered assistant to help answer questions and handle internal requests.
 
-## Getting Started
+🔧 Key Features
+✅ AI Chatbot for Sellers
 
-First, run the development server:
+Only available to authenticated sellers.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Each seller gets one unique AI conversation per company.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Messages are persisted in a PostgreSQL database.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Chatbot can be toggled via a floating button.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🔒 Role-Based Access Control
 
-## Learn More
+validateAuthRequest() ensures only SELLER roles can access the assistant.
 
-To learn more about Next.js, take a look at the following resources:
+Buyers are redirected elsewhere.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+💬 Conversation Management
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Uses prisma.conversation.upsert() with a compound unique key (@@unique([sellerId, companyId])) to avoid duplicate conversations.
 
-## Deploy on Vercel
+Previous code created a new conversation on every page load — now fixed.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+💡 Smart Chat UI
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Modal UI using ChatbotModal.
+
+Floating button built with Tailwind and Lucide icons (<MessageCircle /> and <X />).
+
+Handles toggling, opening, and closing of the modal.
+
+💵 Stripe Subscriptions
+
+Sellers on the FREE plan are shown an UpgradeDialog.
+
+Pro/Plus plans get full access to the chatbot.
+
+Subscription session URL is dynamically passed in.
+
+⚙️ Tech Stack
+Frontend:
+
+React (Client components + Server components)
+
+Next.js 15 App Router
+
+ShadCN UI + Tailwind CSS
+
+React Query (for caching and fetching chat-related data)
+
+Backend / Server-side
+
+Prisma ORM + PostgreSQL
+
+Stripe for billing and subscription logic
+
+Clerk for authentication
+
+Performance Optimization
+
+Uses React.cache() for memoizing DB calls like getConversationId() and adminUser()
+
+Suspense for lazily loading the chatbot component
+
+
