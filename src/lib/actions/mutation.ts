@@ -22,7 +22,7 @@ export function useDeleteCodeMutation() {
       queryClient.setQueriesData<InfiniteData<CodesResponse, string | null>>(
         queryFilter,
         (oldData) => {
-          if (!oldData) return;
+          if (!oldData) return; // If no data exists, return undefined
 
           return {
             pageParams: oldData.pageParams,

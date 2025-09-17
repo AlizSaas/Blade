@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Bike, Building2, Users, CheckCircle, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import CheckUserRoleRed from "@/components/check-user.role-red"
 
 export default function HomePage() {
   return (
@@ -28,9 +29,7 @@ export default function HomePage() {
               </SignedOut>
 
               <SignedIn>
-                <Link href="/onboarding">
-                  <Button variant="ghost">Onboarding</Button>
-                </Link>
+                <CheckUserRoleRed/>
                 <UserButton afterSignOutUrl="/" />
               </SignedIn>
             </div>
