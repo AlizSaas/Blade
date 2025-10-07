@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@node-rs/argon2"], // Add any other external packages here
   experimental:{
