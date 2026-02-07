@@ -235,7 +235,7 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                           <p className="text-sm text-gray-600">
                             {attachments.length >= 1 ? "Image uploaded" : "Click to upload bike image"}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">JPEG, PNG, WebP up to 512KB</p>
+                          <p className="text-xs text-gray-500 mt-1">JPEG, PNG, WebP up to 4MB</p>
                         </label>
                       </div>
 

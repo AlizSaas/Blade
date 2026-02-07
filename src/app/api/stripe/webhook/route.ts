@@ -53,7 +53,7 @@ const signature = req.headers.get('stripe-signature');
     })
 
    await resend.emails.send({
-      from: 'YourApp <onboarding@resend.dev>',
+      from: 'YourApp <no-reply@alizmail.com>',
       to: event.data.object.customer_email!,
       subject: '🎉 Subscription Confirmed!',
       html: `
