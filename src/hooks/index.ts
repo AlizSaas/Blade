@@ -100,12 +100,12 @@ export default function useMediaUpload() {
       return;
     }
 
-    // Validate file sizes (512KB max as per your router config)
-    const maxSize = 512 * 1024; // 512KB in bytes
+    // Validate file sizes (4MB max as per your router config)
+    const maxSize = 4 * 1024 * 1024; // 4MB in bytes
     const oversizedFiles = files.filter(file => file.size > maxSize);
     
     if (oversizedFiles.length > 0) {
-      toast.error("Images must be smaller than 512KB.");
+      toast.error("Images must be smaller than 4MB.");
       return;
     }
 
