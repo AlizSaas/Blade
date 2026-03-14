@@ -87,7 +87,7 @@ export async function createBuyer(clerkId:string, invitationCode:string) {
     try {
          const clerk = await clerkClient(); // initialize Clerk client
         const user = await clerk.users.getUser(clerkId); // get user by clerkId
-        if(!user || !user.firstName || !user.lastName) {
+        if(!user || !user.firstName) {
             throw new Error("User not found")
         }
 

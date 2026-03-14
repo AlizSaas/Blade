@@ -219,7 +219,7 @@ export default function SellerDashboard() {
                             <User className="h-4 w-4 text-gray-400" />
                             <div>
                               <div className="font-medium">
-                                {request.buyer.firstname} {request.buyer.lastname}
+                                {request.buyer.firstname} {request.buyer.lastname || ""}
                               </div>
                               <div className="text-sm text-gray-500">{request.buyer.email}</div>
                             </div>

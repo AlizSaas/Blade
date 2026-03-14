@@ -281,7 +281,7 @@ if(isLoading) {
                                 <AlertDialogDescription>
                                   Are you sure you want to remove{" "}
                                   <span className="font-semibold">
-                                    {customer.firstname} {customer.lastname}
+                                    {customer.firstname} {customer.lastname || ""}
                                   </span>{" "}
                                   from your company? This action cannot be undone and they will lose access to all
                                   company resources.

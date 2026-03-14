@@ -25,11 +25,10 @@ import { BuyerFormValues, buyerSchema, SellerFormValues, sellerSchema } from "@/
 interface OnboardingFormProps {
   userEmail: string
   firstName: string
-  lastName: string
 
 }
 
-const OnboardingForm = ({ userEmail, firstName, lastName }: OnboardingFormProps) => {
+const OnboardingForm = ({ userEmail, firstName }: OnboardingFormProps) => {
    
   const router = useRouter()
   const { user, isLoaded } = useUser()
@@ -42,7 +41,6 @@ const OnboardingForm = ({ userEmail, firstName, lastName }: OnboardingFormProps)
     resolver: zodResolver(buyerSchema),
     defaultValues: {
       firstName,
-      lastName: lastName || "user",
       email: userEmail,
       invitationCode: "",
     },
@@ -52,7 +50,6 @@ const OnboardingForm = ({ userEmail, firstName, lastName }: OnboardingFormProps)
     resolver: zodResolver(sellerSchema),
     defaultValues: {
       firstName: firstName || "",
-      lastName: lastName || "user",
       email: userEmail,
       companyName: "",
       companyWebsite: "",
@@ -185,26 +182,13 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
               <form onSubmit={buyerForm.handleSubmit(handleBuyerSubmit)} className="space-y-6">
                 <div>
                   <h3 className="text-lg font-medium mb-4">Personal Information</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <FormField
                       control={buyerForm.control}
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} disabled className="bg-gray-100" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={buyerForm.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
                           <FormControl>
                             <Input {...field} disabled className="bg-gray-100" />
                           </FormControl>
@@ -267,26 +251,13 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
               <form onSubmit={sellerForm.handleSubmit(handleSellerSubmit)} className="space-y-6">
                 <div>
                   <h3 className="text-lg font-medium mb-4">Personal Information</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <FormField
                       control={sellerForm.control}
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} disabled className="bg-gray-100" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={sellerForm.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
                           <FormControl>
                             <Input {...field} disabled className="bg-gray-100" />
                           </FormControl>

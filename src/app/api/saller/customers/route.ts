@@ -36,7 +36,7 @@ export async function GET(req:NextRequest) {
             role:'BUYER', // Only fetch buyers
         },
         orderBy:{
-            lastname: 'asc' // Sort by last name in ascending order
+            firstname: 'asc' // Sort by first name in ascending order
         },
         take:pageSize + 1,
         cursor: cursor ? {id: cursor} : undefined,
