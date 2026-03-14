@@ -7,6 +7,7 @@ import {ClerkProvider} from '@clerk/nextjs'
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { fileRouter } from "./api/uploadthing/core";
 import { extractRouterConfig } from "uploadthing/server";
+import { ThemeProvider } from "@/components/theme-provider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,13 +30,20 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider> 
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NextSSRPlugin routerConfig={extractRouterConfig(fileRouter)} />
-        <ReactQueryProvider> {children} </ReactQueryProvider>
-        <Toaster/>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextSSRPlugin routerConfig={extractRouterConfig(fileRouter)} />
+          <ReactQueryProvider> {children} </ReactQueryProvider>
+          <Toaster/>
+        </ThemeProvider>
       </body>
     </html>
     </ClerkProvider>
