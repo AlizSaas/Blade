@@ -91,14 +91,14 @@ export default function SellerDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-red-200">
+          <Card className="border-red-200 dark:border-red-800">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Requests</h3>
-                <p className="text-red-600 mb-4">
+                <h3 className="text-lg font-semibold text-red-900 dark:text-red-400 mb-2">Error Loading Requests</h3>
+                <p className="text-red-600 dark:text-red-400 mb-4">
                   {error instanceof Error ? error.message : "An error occurred while loading requests"}
                 </p>
                 <Button onClick={() => window.location.reload()} variant="outline">
@@ -120,11 +120,11 @@ export default function SellerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto"> 
         <div className="mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Seller Dashboard</h1>
-          <p className="text-gray-600 mt-2">Manage your bike requests and inventory</p>
+          <h1 className="text-3xl font-bold text-foreground">Seller Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Manage your bike requests and inventory</p>
 
           <div className="flex items-center gap-4 mb-4 mt-2">
             <Link href="/seller/customers">
@@ -139,45 +139,45 @@ export default function SellerDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Requests</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pending Requests</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.pendingRequests}</div>
-              <p className="text-xs text-gray-500 mt-1">Awaiting your response</p>
+              <p className="text-xs text-muted-foreground mt-1">Awaiting your response</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Approved Requests</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Approved Requests</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.approvedRequests}</div>
-              <p className="text-xs text-gray-500 mt-1">Successfully approved</p>
+              <p className="text-xs text-muted-foreground mt-1">Successfully approved</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Rejected Requests</CardTitle>
-              <XCircle className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Rejected Requests</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600 dark:text-red-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.rejectedRequests}</div>
-              <p className="text-xs text-gray-500 mt-1">Declined requests</p>
+              <p className="text-xs text-muted-foreground mt-1">Declined requests</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Requests</CardTitle>
-              <Bike className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Requests</CardTitle>
+              <Bike className="h-4 w-4 text-blue-600 dark:text-blue-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalRequests}</div>
-              <p className="text-xs text-gray-500 mt-1">All time</p>
+              <p className="text-xs text-muted-foreground mt-1">All time</p>
             </CardContent>
           </Card>
         </div>
@@ -191,9 +191,9 @@ export default function SellerDashboard() {
           <CardContent>
             {requests.length === 0 ? ( // Show empty state if no requests
               <div className="text-center py-12">
-                <Bike className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Requests Yet</h3>
-                <p className="text-gray-500">No bike requests have been submitted yet.</p>
+                <Bike className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Requests Yet</h3>
+                <p className="text-muted-foreground">No bike requests have been submitted yet.</p>
               </div>
             ) : (
               <InfiniteScrollContainer
@@ -213,22 +213,22 @@ export default function SellerDashboard() {
                   </TableHeader>
                   <TableBody>
                     {requests.map((request) => (
-                      <TableRow key={request.id} className="hover:bg-gray-50">
+                      <TableRow key={request.id} className="hover:bg-muted/50">
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <User className="h-4 w-4 text-gray-400" />
+                            <User className="h-4 w-4 text-muted-foreground" />
                             <div>
                               <div className="font-medium">
                                 {request.buyer.firstname} {request.buyer.lastname || ""}
                               </div>
-                              <div className="text-sm text-gray-500">{request.buyer.email}</div>
+                              <div className="text-sm text-muted-foreground">{request.buyer.email}</div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Link
                             href={`/seller/requests/${request.id}`}
-                            className="font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                            className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline flex items-center gap-1"
                           >
                             {request.bikeModel}
                             <ExternalLink className="w-3 h-3" />
@@ -245,7 +245,7 @@ export default function SellerDashboard() {
                               <Button
                                 size="sm"
                                 onClick={() => handleApprove(request)}
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                               >
                                 Approve
                               </Button>
@@ -253,7 +253,7 @@ export default function SellerDashboard() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleReject(request)}
-                                className="text-red-600 border-red-600 hover:bg-red-50"
+                                className="text-red-600 dark:text-red-400 border-red-600 dark:border-red-400 hover:bg-red-50 dark:hover:bg-red-950"
                               >
                                 Reject
                               </Button>
@@ -268,7 +268,7 @@ export default function SellerDashboard() {
                 {/* Loading indicator for infinite scroll */}
                 {isFetchingNextPage && (
                   <div className="flex justify-center py-6">
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       <span className="text-sm">Loading more requests...</span>
                     </div>

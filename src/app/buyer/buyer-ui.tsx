@@ -85,14 +85,14 @@ export default function BuyerDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-red-200">
+          <Card className="border-red-200 dark:border-red-800">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Requests</h3>
-                <p className="text-red-600 mb-4">
+                <h3 className="text-lg font-semibold text-red-900 dark:text-red-400 mb-2">Error Loading Requests</h3>
+                <p className="text-red-600 dark:text-red-400 mb-4">
                   {error instanceof Error ? error.message : "An error occurred while loading your requests"}
                 </p>
                 <Button onClick={() => window.location.reload()} variant="outline">
@@ -107,16 +107,16 @@ export default function BuyerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Buyer Dashboard</h1>
-            <p className="text-gray-600 mt-2">Track your bike requests and approvals</p>
+            <h1 className="text-3xl font-bold text-foreground">Buyer Dashboard</h1>
+            <p className="text-muted-foreground mt-2">Track your bike requests and approvals</p>
           </div>
           <Link
             href="/buyer/new-request"
-            className={buttonVariants({ variant: "default", className: "bg-blue-600 hover:bg-blue-700" })}
+            className={buttonVariants({ variant: "default", className: "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600" })}
           >
             <Plus className="w-4 h-4 mr-2" />
             New Bike Request
@@ -127,8 +127,8 @@ export default function BuyerDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Requests</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pending Requests</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
             </CardHeader>
             <CardContent>
               {isPending ? (
@@ -136,14 +136,14 @@ export default function BuyerDashboard() {
               ) : (
                 <div className="text-2xl font-bold">{stats.pendingRequests}</div>
               )}
-              <p className="text-xs text-gray-500 mt-1">Awaiting seller response</p>
+              <p className="text-xs text-muted-foreground mt-1">Awaiting seller response</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Approved Requests</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Approved Requests</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-500" />
             </CardHeader>
             <CardContent>
               {isPending ? (
@@ -151,14 +151,14 @@ export default function BuyerDashboard() {
               ) : (
                 <div className="text-2xl font-bold">{stats.approvedRequests}</div>
               )}
-              <p className="text-xs text-gray-500 mt-1">Ready to proceed</p>
+              <p className="text-xs text-muted-foreground mt-1">Ready to proceed</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Rejected Requests</CardTitle>
-              <XCircle className="h-4 w-4 text-red-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Rejected Requests</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600 dark:text-red-500" />
             </CardHeader>
             <CardContent>
               {isPending ? (
@@ -166,14 +166,14 @@ export default function BuyerDashboard() {
               ) : (
                 <div className="text-2xl font-bold">{stats.rejectedRequests}</div>
               )}
-              <p className="text-xs text-gray-500 mt-1">Not approved</p>
+              <p className="text-xs text-muted-foreground mt-1">Not approved</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Requests</CardTitle>
-              <Bike className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Requests</CardTitle>
+              <Bike className="h-4 w-4 text-blue-600 dark:text-blue-500" />
             </CardHeader>
             <CardContent>
               {isPending ? (
@@ -181,7 +181,7 @@ export default function BuyerDashboard() {
               ) : (
                 <div className="text-2xl font-bold">{stats.totalRequests}</div>
               )}
-              <p className="text-xs text-gray-500 mt-1">All time</p>
+              <p className="text-xs text-muted-foreground mt-1">All time</p>
             </CardContent>
           </Card>
         </div>
@@ -210,13 +210,13 @@ export default function BuyerDashboard() {
               </div>
             ) : requests.length === 0 ? ( // Check if there are no requests
               <div className="text-center py-12">
-                <Bike className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Requests Yet</h3>
-                <p className="text-gray-500 mb-4">
+                <Bike className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Requests Yet</h3>
+                <p className="text-muted-foreground mb-4">
                   You haven&apos;t submitted any bike requests yet. Create your first request to get started.
                 </p>
                 <Link href="/buyer/new-request">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600">
                     <Plus className="w-4 h-4 mr-2" />
                     Create First Request
                   </Button>
@@ -245,17 +245,17 @@ export default function BuyerDashboard() {
                   </TableHeader>
                   <TableBody>
                     {requests.map((request) => (
-                      <TableRow key={request.id} className="hover:bg-gray-50">
+                      <TableRow key={request.id} className="hover:bg-muted/50">
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <User className="h-4 w-4 text-gray-400" />
+                            <User className="h-4 w-4 text-muted-foreground" />
                             <div className="font-medium">{request.seller.firstname}</div>
                           </div>
                         </TableCell>
                   <TableCell>
                           <Link
                             href={`/buyer/${request.id}`}
-                            className="font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                            className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline flex items-center gap-1"
                           >
                             {request.bikeModel}
                             <ExternalLink className="w-3 h-3" />
@@ -266,7 +266,7 @@ export default function BuyerDashboard() {
                         </TableCell>
                         <TableCell>{getStatusBadge(request.status)}</TableCell>
                         <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{getStatusDescription(request.status)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{getStatusDescription(request.status)}</TableCell>
                         <TableCell>
                           {request.notes?.slice(0,25) + "..."}
                         </TableCell>
@@ -279,7 +279,7 @@ export default function BuyerDashboard() {
                 {/* Loading indicator for infinite scroll */}
                 {isFetchingNextPage && (
                   <div className="flex justify-center py-6">
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       <span className="text-sm">Loading more requests...</span>
                     </div>
@@ -307,7 +307,7 @@ export default function BuyerDashboard() {
                 {isPending ? (
                   // Loading skeleton for approved requests
                   Array.from({ length: 3 }).map((_, index) => (
-                    <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div key={index} className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
                       <Skeleton className="h-4 w-32 mb-2" />
                       <Skeleton className="h-3 w-24" />
                     </div>
@@ -320,19 +320,19 @@ export default function BuyerDashboard() {
                       .map((request) => (
                         <div
                           key={request.id}
-                          className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                          className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800"
                         >
                           <div>
-                            <div className="font-medium text-green-800">{request.bikeModel}</div>
-                            <div className="text-sm text-green-600">Approved By {request.seller.firstname}</div>
+                            <div className="font-medium text-green-800 dark:text-green-300">{request.bikeModel}</div>
+                            <div className="text-sm text-green-600 dark:text-green-400">Approved By {request.seller.firstname}</div>
                           </div>
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600">
                             Contact Seller
                           </Button>
                         </div>
                       ))}
                     {requests.filter((req) => req.status === "APPROVED").length === 0 && (
-                      <p className="text-gray-500 text-center py-4">No approved requests yet</p>
+                      <p className="text-muted-foreground text-center py-4">No approved requests yet</p>
                     )}
                   </>
                 )}
@@ -355,7 +355,7 @@ export default function BuyerDashboard() {
                 {isPending ? (
                   // Loading skeleton for pending requests
                   Array.from({ length: 3 }).map((_, index) => (
-                    <div key={index} className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div key={index} className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
                       <Skeleton className="h-4 w-32 mb-2" />
                       <Skeleton className="h-3 w-24" />
                     </div>
@@ -368,20 +368,20 @@ export default function BuyerDashboard() {
                       .map((request) => (
                         <div
                           key={request.id}
-                          className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200"
+                          className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800"
                         >
                           <div>
-                            <div className="font-medium text-yellow-800">{request.bikeModel}</div>
-                            <div className="text-sm text-yellow-600">From {request.buyer.firstname}</div>
+                            <div className="font-medium text-yellow-800 dark:text-yellow-300">{request.bikeModel}</div>
+                            <div className="text-sm text-yellow-600 dark:text-yellow-400">From {request.buyer.firstname}</div>
                           </div>
-                          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                          <Badge variant="outline" className="text-yellow-600 dark:text-yellow-400 border-yellow-600 dark:border-yellow-400">
                             <Clock className="w-3 h-3 mr-1" />
                             Pending
                           </Badge>
                         </div>
                       ))}
                     {requests.filter((req) => req.status === "PENDING").length === 0 && (
-                      <p className="text-gray-500 text-center py-4">No pending requests</p>
+                      <p className="text-muted-foreground text-center py-4">No pending requests</p>
                     )}
                   </>
                 )}
