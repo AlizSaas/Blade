@@ -71,7 +71,7 @@ export default function CustomersPage() {
     switch (role) {
       case "BUYER":
         return (
-          <Badge variant="secondary" className="text-blue-600 bg-blue-50 border-blue-200">
+          <Badge variant="secondary" className="text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
             <UserCheck className="w-3 h-3 mr-1" />
             Buyer
           </Badge>
@@ -94,14 +94,14 @@ export default function CustomersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-red-200">
+          <Card className="border-red-200 dark:border-red-800">
             <CardContent className="flex items-center justify-center py-12">
               <div className="text-center">
                 <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Customers</h3>
-                <p className="text-red-600 mb-4">
+                <h3 className="text-lg font-semibold text-red-900 dark:text-red-400 mb-2">Error Loading Customers</h3>
+                <p className="text-red-600 dark:text-red-400 mb-4">
                   {error instanceof Error ? error.message : "An error occurred while loading customers"}
                 </p>
                 <Button onClick={() => window.location.reload()} variant="outline">
@@ -120,15 +120,15 @@ if(isLoading) {
     )
 }
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Users className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Customer Management</h1>
+            <h1 className="text-3xl font-bold text-foreground">Customer Management</h1>
           </div>
-          <p className="text-gray-600">Manage your company&apos;s customers and team members</p>
+          <p className="text-muted-foreground">Manage your company&apos;s customers and team members</p>
            <div className="flex items-center gap-4 mb-4 mt-2">
                     <Link href="/seller">
                       <Button variant="default" size="sm">
@@ -143,25 +143,25 @@ if(isLoading) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Customers</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Customers</CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{customers.length}</div>
-              <p className="text-xs text-gray-500 mt-1">Active users</p>
+              <p className="text-xs text-muted-foreground mt-1">Active users</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Buyers</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Buyers</CardTitle>
               <UserCheck className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {customers.filter((customer) => customer.role === "BUYER").length}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Customer accounts</p>
+              <p className="text-xs text-muted-foreground mt-1">Customer accounts</p>
             </CardContent>
           </Card>
 
@@ -198,9 +198,9 @@ if(isLoading) {
               </div>
             ) : customers.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Customers Found</h3>
-                <p className="text-gray-500">
+                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No Customers Found</h3>
+                <p className="text-muted-foreground">
                   No customers have joined your company yet. Share invitation codes to get started.
                 </p>
               </div>
@@ -226,7 +226,7 @@ if(isLoading) {
                   </TableHeader>
                   <TableBody>
                     {customers.map((customer) => (
-                      <TableRow key={customer.id} className="hover:bg-gray-50">
+                      <TableRow key={customer.id} className="hover:bg-muted/50">
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-10 w-10">
@@ -234,12 +234,12 @@ if(isLoading) {
                                 src={customer.image || undefined}
                                 alt={`${customer.firstname} ${customer.lastname || ""}`}
                               />
-                              <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
+                              <AvatarFallback className="bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-medium">
                                 {getInitials(customer.firstname, customer.lastname)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium text-gray-900">
+                              <div className="font-medium text-foreground">
                                 {customer.firstname} {customer.lastname || ""}
                               </div>
                               
@@ -248,20 +248,20 @@ if(isLoading) {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            <div className="font-medium text-gray-900">{customer.email}</div>
+                            <div className="font-medium text-foreground">{customer.email}</div>
                            
                           </div>
                         </TableCell>
                         <TableCell>{getRoleBadge(customer.role)}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{formatDate(customer.createdAt)}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{formatDate(customer.updatedAt)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatDate(customer.createdAt)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatDate(customer.updatedAt)}</TableCell>
                         <TableCell className="text-right">
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                                 disabled={deleteCustomerMutation.isPending}
                               >
                                 {deleteCustomerMutation.isPending &&
@@ -312,7 +312,7 @@ if(isLoading) {
                 {/* Loading indicator for infinite scroll */}
                 {isFetchingNextPage && (
                   <div className="flex justify-center py-6">
-                    <div className="flex items-center gap-2 text-gray-500">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       <span className="text-sm">Loading more customers...</span>
                     </div>
