@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Send, X, Bot, User, Minimize2, Maximize2 } from "lucide-react"
+import { Send, X, Bot, User } from "lucide-react"
 
 import { Message } from "@/generated/prisma"
 import { useSendMessageToAI } from "@/hooks"
@@ -27,7 +27,6 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   const sendMessageMutation = useSendMessageToAI()
@@ -109,7 +108,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] h-[500px] p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background">
+      <DialogContent className="sm:max-w-md max-h-[85vh] h-[500px] p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background" showCloseButton={false}>
         {/* Header */}
         <DialogHeader className="px-4 py-3 border-b border-border flex-shrink-0 bg-card">
           <div className="flex items-center justify-between">
@@ -131,19 +130,6 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsMinimized(!isMinimized)}
-                className="h-8 w-8 rounded-full hover:bg-muted"
-                aria-label={isMinimized ? "Maximize chat" : "Minimize chat"}
-              >
-                {isMinimized ? (
-                  <Maximize2 className="h-4 w-4 text-muted-foreground" />
-                ) : (
-                  <Minimize2 className="h-4 w-4 text-muted-foreground" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
                 onClick={onClose}
                 className="h-8 w-8 rounded-full hover:bg-destructive/10"
                 aria-label="Close chat"
@@ -154,9 +140,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
           </div>
         </DialogHeader>
 
-        {!isMinimized && (
-          <>
-            {/* Messages Area */}
+        {/* Messages Area */}
             <div
               ref={messagesContainerRef}
               className="flex-1 overflow-y-auto p-4 space-y-4 bg-background"
@@ -259,8 +243,6 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                 </Button>
               </div>
             </div>
-          </>
-        )}
       </DialogContent>
     </Dialog>
   )
