@@ -21,6 +21,8 @@ interface ChatbotModalProps {
   initialMessages: Message[]
 }
 
+const SCROLL_DELAY_MS = 100
+
 export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId, initialMessages }: ChatbotModalProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [inputValue, setInputValue] = useState("")
@@ -40,7 +42,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
   useEffect(() => {
     if (isOpen) {
       // Small delay to ensure DOM is ready
-      setTimeout(scrollToBottom, 100)
+      setTimeout(scrollToBottom, SCROLL_DELAY_MS)
     }
   }, [isOpen])
 
@@ -107,7 +109,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md h-[500px] p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background">
+      <DialogContent className="sm:max-w-md max-h-[85vh] h-[500px] p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background">
         {/* Header */}
         <DialogHeader className="px-4 py-3 border-b border-border flex-shrink-0 bg-card">
           <div className="flex items-center justify-between">
