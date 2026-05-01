@@ -127,6 +127,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
             : "sm:max-w-md max-h-[85vh] h-[500px] lg:max-h-[80vh] lg:h-[600px]"
         }`}
         showCloseButton={false}
+        onInteractOutside={(e) => e.preventDefault()}
       >
         {/* Header */}
         <DialogHeader className="px-4 py-3 border-b border-border flex-shrink-0 bg-card">
