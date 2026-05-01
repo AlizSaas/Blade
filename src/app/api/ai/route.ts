@@ -77,24 +77,6 @@ export const POST = async (req: NextRequest) => {
       select: {
         name: true,
         website: true,
-        codes: true,
-        users: {
-          select: {
-            approvedRequests: true,
-            role: true,
-            company: true,
-            bikeRequests: true,
-            firstname: true,
-            lastname: true,
-            email: true,
-          },
-        },
-        _count: {
-          select: {
-            users: true,
-            codes: true,
-          },
-        },
       },
     });
 
@@ -102,8 +84,35 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Company data not found' }, { status: 404 });
     }
 
+    // Fetch accurate per-seller bike request counts
+    const [approvedCount, rejectedCount, pendingCount, latestRequests] = await Promise.all([
+      prisma.bikeRequest.count({
+        where: { seller: { clerkId: sessionUser.id }, status: 'APPROVED' },
+      }),
+      prisma.bikeRequest.count({
+        where: { seller: { clerkId: sessionUser.id }, status: 'REJECTED' },
+      }),
+      prisma.bikeRequest.count({
+        where: { seller: { clerkId: sessionUser.id }, status: 'PENDING' },
+      }),
+      prisma.bikeRequest.findMany({
+        where: { seller: { clerkId: sessionUser.id } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          status: true,
+          bikeModel: true,
+          createdAt: true,
+          buyer: { select: { firstname: true, lastname: true } },
+        },
+      }),
+    ]);
+
+    const totalCount = approvedCount + rejectedCount + pendingCount;
+
     // Save user message
-    const sellerMessage = await prisma.message.create({
+    await prisma.message.create({
       data: {
         content,
         conversationId,
@@ -115,40 +124,67 @@ export const POST = async (req: NextRequest) => {
 
     // Build prompt
     const systemContent = `
-You are a helpful, knowledgeable AI assistant for the motorcycle seller company "${companyData.name}".
-Your goal is to assist the company's sellers with questions related to:
-- Buyer activity
-- Approved or pending bike requests
-- Internal users (sellers and buyers)
-- Unique referral codes
-- General company insights
+You are an AI assistant for a motorcycle company dashboard.
+Your job is to help sellers understand their bike requests using ONLY the provided database data.
 
-Company Overview:
-- Name: ${companyData.name}
-- Website: ${companyData.website ?? 'Not available'}
+-------------------------------------
+🔒 STRICT RULES (DO NOT BREAK)
+-------------------------------------
+- ONLY use the data in the DATA section below
+- NEVER guess, estimate, or calculate missing values
+- If data is missing → say: "I don't have enough information to answer that."
+- DO NOT make up requests, counts, or statuses
+- DO NOT assume anything not explicitly provided
 
-Company Stats:
-- Total Users: ${companyData._count.users}
-  - Sellers: ${companyData.users.filter((u) => u.role === 'SELLER').length}
-  - Buyers: ${companyData.users.filter((u) => u.role === 'BUYER').length}
-- Total Codes Issued: ${companyData._count.codes}
+-------------------------------------
+📊 DATA
+-------------------------------------
+Company: ${companyData.name}
+Website: ${companyData.website ?? 'Not available'}
 
-User Directory:
-${companyData.users
-  .map(
-    (u) =>
-      `- ${u.firstname} ${u.lastname ?? ''} (${u.email}) [${u.role}] - Approved Requests: ${u.approvedRequests.length}, Bike Requests: ${u.bikeRequests.length}`
-  )
-  .join('\n')}
+DATA:
+{
+  "approvedCount": ${approvedCount},
+  "rejectedCount": ${rejectedCount},
+  "pendingCount": ${pendingCount},
+  "totalCount": ${totalCount},
+  "latestRequests": ${JSON.stringify(
+    latestRequests.map((r) => ({
+      id: r.id,
+      status: r.status,
+      customerName: `${r.buyer.firstname} ${r.buyer.lastname ?? ''}`.trim(),
+      bikeModel: r.bikeModel,
+      createdAt: r.createdAt.toISOString(),
+    }))
+  )}
+}
 
-Recent Referral Codes:
-${companyData.codes.map((code) => `- ${code.code}`).join('\n')}
+-------------------------------------
+🧠 HOW TO RESPOND
+-------------------------------------
+### Counting questions
+- "How many rejected requests?" → use rejectedCount
+- "How many approved?" → use approvedCount
+- "How many pending?" → use pendingCount
+- "Total requests?" → use totalCount
+
+### Listing requests
+- "Show latest requests" / "Recent requests" → use latestRequests array
+  Format:
+  Here are your latest requests:
+  1. [bikeModel] — [STATUS] — [customerName] ([date])
+
+### Unknown questions
+→ "I don't have enough information to answer that."
+
+### UI FRIENDLY OUTPUT
+- Keep answers short and use lists when possible
 `.trim();
 
-    const promptMessages = [
+    const promptMessages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: systemContent },
       ...conversation.messages.map((msg) => ({
-        role: msg.Role === 'USER' ? 'user' : 'assistant',
+        role: (msg.Role === 'USER' ? 'user' : 'assistant') as 'user' | 'assistant',
         content: msg.content,
       })),
       { role: 'user', content },
