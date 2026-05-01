@@ -14,7 +14,7 @@ const eslintConfig = [
     extends: ["next/core-web-vitals", "next"],
     rules: {
       // Fix build-blocking errors
-      "@typescript-eslint/no-unused-vars": "warn", // Change to "warn" to avoid build errors
+      "no-unused-vars": "warn", // Change to "warn" to avoid build errors
       "@typescript-eslint/no-unused-expressions": "off", // Disable unused expressions rule
       "@typescript-eslint/no-require-imports": "off", // Disable require imports rule
 
