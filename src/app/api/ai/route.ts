@@ -184,7 +184,7 @@ DATA:
     const promptMessages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: systemContent },
       ...conversation.messages.map((msg) => ({
-        role: msg.Role === 'USER' ? 'user' : 'assistant',
+        role: (msg.Role === 'USER' ? 'user' : 'assistant') as 'user' | 'assistant',
         content: msg.content,
       })),
       { role: 'user', content },
