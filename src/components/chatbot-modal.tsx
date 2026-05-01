@@ -123,7 +123,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
       <DialogContent
         className={`p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background transition-all duration-300 ${
           isFullscreen
-            ? "fixed inset-0 max-w-none w-full h-full rounded-none"
+            ? "!max-w-none !w-screen !h-screen !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0 !right-0 !bottom-0"
             : "sm:max-w-md max-h-[85vh] h-[500px] lg:max-h-[80vh] lg:h-[600px]"
         }`}
         showCloseButton={false}
