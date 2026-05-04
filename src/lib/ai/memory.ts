@@ -38,7 +38,9 @@ export async function buildMessageContext(messages: Message[]): Promise<MessageC
   }
 
   const olderMessages = messages.slice(0, -RECENT_WINDOW)
-  const systemSummary = await summariseMessages(olderMessages)
+  const rawSummary = await summariseMessages(olderMessages)
+  // Only inject the summary if the model actually returned something meaningful
+  const systemSummary = rawSummary.trim() || null
 
   return { systemSummary, recentMessages }
 }

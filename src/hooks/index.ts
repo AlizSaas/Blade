@@ -213,7 +213,13 @@ export function useSendMessageToAI() {
           const jsonStr = line.slice(6).trim()
           if (!jsonStr) continue
 
-          const event = JSON.parse(jsonStr) as StreamEvent
+          let event: StreamEvent
+          try {
+            event = JSON.parse(jsonStr) as StreamEvent
+          } catch {
+            // Ignore malformed SSE lines
+            continue
+          }
 
           if (event.t === 'chunk' && event.v !== undefined) {
             callbacks.onChunk(event.v)

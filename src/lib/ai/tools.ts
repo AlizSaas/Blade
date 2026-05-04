@@ -1,6 +1,11 @@
 import type { ChatCompletionTool } from 'openai/resources/index.mjs'
 import { prisma } from '@/lib/prisma'
 
+/** Formats a buyer's full name, safely omitting a missing last name. */
+function formatCustomerName(firstname: string, lastname: string | null): string {
+  return `${firstname} ${lastname ?? ''}`.trim()
+}
+
 export const AI_TOOLS: ChatCompletionTool[] = [
   {
     type: 'function',
@@ -74,7 +79,7 @@ export async function executeToolCall(
         id: r.id,
         status: r.status,
         bikeModel: r.bikeModel,
-        customerName: `${r.buyer.firstname} ${r.buyer.lastname ?? ''}`.trim(),
+        customerName: formatCustomerName(r.buyer.firstname, r.buyer.lastname),
         createdAt: r.createdAt.toISOString(),
       })),
     )

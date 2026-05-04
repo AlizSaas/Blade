@@ -31,6 +31,9 @@ const messageSchema = z.object({
   content: z.string().min(1, 'Message content cannot be empty'),
 })
 
+/** Fallback used when the AI returns an empty response. Must match the UI fallback. */
+const AI_FALLBACK_MESSAGE = "Sorry, I couldn't understand that."
+
 /** SSE line helpers */
 function sseChunk(text: string): string {
   return `data: ${JSON.stringify({ t: 'chunk', v: text })}\n\n`
@@ -133,11 +136,13 @@ export const POST = async (req: NextRequest) => {
     if (assistantMsg.tool_calls?.length) {
       const toolResults = await Promise.all(
         assistantMsg.tool_calls.map(async (tc: ChatCompletionMessageToolCall) => {
-          const result = await executeToolCall(
-            tc.function.name,
-            JSON.parse(tc.function.arguments) as Record<string, unknown>,
-            sessionUser.id,
-          )
+          let parsedArgs: Record<string, unknown>
+          try {
+            parsedArgs = JSON.parse(tc.function.arguments) as Record<string, unknown>
+          } catch {
+            parsedArgs = {}
+          }
+          const result = await executeToolCall(tc.function.name, parsedArgs, sessionUser.id)
           return {
             role: 'tool' as const,
             tool_call_id: tc.id,
@@ -210,7 +215,7 @@ export const POST = async (req: NextRequest) => {
 
           const aiMessage = await prisma.message.create({
             data: {
-              content: fullContent || "Sorry, I couldn't understand that.",
+              content: fullContent || AI_FALLBACK_MESSAGE,
               conversationId,
               Role: $Enums.MessageRole.AI,
             },

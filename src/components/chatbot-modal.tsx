@@ -23,6 +23,8 @@ interface ChatbotModalProps {
 
 const SCROLL_DELAY_MS = 100
 
+const AI_FALLBACK_MESSAGE = "Sorry, I couldn't understand that."
+
 const QUICK_ACTIONS = [
   "Show me all the latest requests",
   "How many rejected requests do I have?",
@@ -119,7 +121,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
           setMessages((prev) =>
             prev.map((m) =>
               m.id === tempId
-                ? { ...m, content: "Sorry, I couldn't understand that." }
+                ? { ...m, content: AI_FALLBACK_MESSAGE }
                 : m,
             ),
           )
@@ -270,7 +272,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                     {message.content}
                     {/* Blinking cursor shown while this specific message is streaming */}
                     {message.id === streamingMessageId && (
-                      <span className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse align-middle" />
+                      <span aria-hidden="true" className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse align-middle" />
                     )}
                   </p>
                   {message.content.length > 0 && (
