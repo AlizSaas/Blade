@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CheckCircle, Clock, XCircle, Bike, User, Loader2, AlertTriangle, ExternalLink, ArrowRight } from "lucide-react"
-import InvitationCodesModal from "@/components/invitation-codes-model"
+
 import kyInstance from "@/lib/ky"
 import type { BikeRequestResponse, IndividualBikeRequest } from "@/lib/types"
 import { useInfiniteQuery } from "@tanstack/react-query"
@@ -279,18 +279,8 @@ export default function SellerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Team Management */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Team Management</CardTitle>
-            <CardDescription>Manage your team and invite new members</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <InvitationCodesModal />
-          </CardContent>
-        </Card>
 
-        {/* Request Action Modal */}
+
         {selectedRequest && actionType && (
           <RequestActionModal
             request={selectedRequest}

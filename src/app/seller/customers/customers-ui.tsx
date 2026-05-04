@@ -26,7 +26,6 @@ import type { UsersResponse } from "@/lib/types"
 import { useInfiniteQuery } from "@tanstack/react-query"
 
 import CustomersTableSkeleton from "@/components/customer-skeleton"
-import InvitationCodesModal from "@/components/invitation-codes-model"
 import Link from "next/link"
 
 export default function CustomersPage() {
@@ -165,9 +164,6 @@ if(isLoading) {
             </CardContent>
           </Card>
 
-        </div>
-        <div className="mb-6">
-             <InvitationCodesModal  />
         </div>
          
 
