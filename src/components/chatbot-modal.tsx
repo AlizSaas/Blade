@@ -23,6 +23,8 @@ interface ChatbotModalProps {
 
 const SCROLL_DELAY_MS = 100
 
+const AI_FALLBACK_MESSAGE = "Sorry, I couldn't understand that."
+
 const QUICK_ACTIONS = [
   "Show me all the latest requests",
   "How many rejected requests do I have?",
@@ -35,14 +37,15 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
-  const sendMessageMutation = useSendMessageToAI()
+  const { sendMessage: streamMessage, isPending } = useSendMessageToAI()
   const clearConversationMutation = useClearConversation()
 
   const handleNewConversation = async () => {
-    if (isTyping || clearConversationMutation.isPending) return
+    if (isPending || clearConversationMutation.isPending) return
     try {
       await clearConversationMutation.mutateAsync({ conversationId })
       setMessages([])
@@ -68,7 +71,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
   }, [messages])
 
   const sendMessage = async (text: string) => {
-    if (!text.trim()) return
+    if (!text.trim() || isPending) return
 
     const userMessage: Message = {
       content: text,
@@ -82,34 +85,51 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
     setInputValue("")
     setIsTyping(true)
 
-    try {
-      const aiResponse = await sendMessageMutation.mutateAsync({
-        conversationId,
-        content: text,
-      })
-
-      const botMessage: Message = {
-        content: aiResponse.content,
-        Role: 'AI',
-        conversationId,
-        createdAt: new Date(),
-        id: uuidv4(),
-      }
-
-      setMessages((prev) => [...prev, botMessage])
-    } catch (error: unknown) {
-      console.error("Failed to fetch AI response:", error)
-      setMessages((prev) => [...prev, {
-        content: "Sorry, I couldn't understand that.",
-        Role: 'AI',
-        conversationId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        id: Date.now().toString(),
-      }])
-    } finally {
-      setIsTyping(false)
+    // Add a streaming placeholder that will be updated chunk-by-chunk
+    const tempId = uuidv4()
+    const streamingPlaceholder: Message = {
+      id: tempId,
+      content: "",
+      Role: "AI",
+      conversationId,
+      createdAt: new Date(),
     }
+    setMessages((prev) => [...prev, streamingPlaceholder])
+    setStreamingMessageId(tempId)
+
+    await streamMessage(
+      { conversationId, content: text },
+      {
+        onChunk: (chunk: string) => {
+          // Hide the typing indicator the moment the first token arrives
+          setIsTyping(false)
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === tempId ? { ...m, content: m.content + chunk } : m,
+            ),
+          )
+        },
+        onDone: ({ id, createdAt }: { id: string; createdAt: Date }) => {
+          // Replace the temp id with the real persisted message id
+          setMessages((prev) =>
+            prev.map((m) => (m.id === tempId ? { ...m, id, createdAt } : m)),
+          )
+          setIsTyping(false)
+          setStreamingMessageId(null)
+        },
+        onError: () => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === tempId
+                ? { ...m, content: AI_FALLBACK_MESSAGE }
+                : m,
+            ),
+          )
+          setIsTyping(false)
+          setStreamingMessageId(null)
+        },
+      },
+    )
   }
 
   const handleSendMessage = () => sendMessage(inputValue)
@@ -163,7 +183,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                 variant="ghost"
                 size="icon"
                 onClick={handleNewConversation}
-                disabled={isTyping || clearConversationMutation.isPending}
+                disabled={isPending || clearConversationMutation.isPending}
                 className="h-8 w-8 rounded-full hover:bg-muted"
                 aria-label="New conversation"
                 title="New conversation"
@@ -218,7 +238,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                     <button
                       key={action}
                       onClick={() => handleQuickAction(action)}
-                      disabled={isTyping}
+                      disabled={isPending}
                       className="text-left text-xs px-3 py-2 rounded-xl border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors disabled:opacity-50"
                     >
                       {action}
@@ -248,17 +268,25 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                       : "bg-muted text-foreground rounded-bl-md"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                  <p
-                    className={`text-[10px] mt-1.5 ${
-                      message.Role === "USER" ? "text-blue-200" : "text-muted-foreground"
-                    }`}
-                  >
-                    {message.createdAt.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                    {message.content}
+                    {/* Blinking cursor shown while this specific message is streaming */}
+                    {message.id === streamingMessageId && (
+                      <span aria-hidden="true" className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse align-middle" />
+                    )}
                   </p>
+                  {message.content.length > 0 && (
+                    <p
+                      className={`text-[10px] mt-1.5 ${
+                        message.Role === "USER" ? "text-blue-200" : "text-muted-foreground"
+                      }`}
+                    >
+                      {message.createdAt.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  )}
                 </div>
 
                 {message.Role === "USER" && (
@@ -271,6 +299,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
               </div>
             ))}
 
+            {/* Typing indicator — shown while waiting for the first streaming token */}
             {isTyping && (
               <div className="flex gap-2 justify-start">
                 <Avatar className="h-7 w-7 mt-1 flex-shrink-0">
@@ -305,7 +334,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                 <button
                   key={action}
                   onClick={() => handleQuickAction(action)}
-                  disabled={isTyping}
+                  disabled={isPending}
                   className="text-left text-xs px-2.5 py-2 rounded-lg border border-border bg-background hover:bg-muted text-foreground transition-colors disabled:opacity-50 leading-snug"
                 >
                   {action}
@@ -324,7 +353,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                 <button
                   key={action}
                   onClick={() => handleQuickAction(action)}
-                  disabled={isTyping}
+                  disabled={isPending}
                   className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors disabled:opacity-50 whitespace-nowrap"
                 >
                   {action}
@@ -340,11 +369,11 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
               onKeyDown={handleKeyPress}
               placeholder="Type a message..."
               className="flex-1 rounded-full bg-muted border-0 focus-visible:ring-1 focus-visible:ring-blue-500 px-4"
-              disabled={isTyping}
+              disabled={isPending}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isTyping}
+              disabled={!inputValue.trim() || isPending}
               size="icon"
               className="h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700 flex-shrink-0 disabled:opacity-50"
             >
