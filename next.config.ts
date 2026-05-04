@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@node-rs/argon2"], // Add any other external packages here
+  serverExternalPackages: ["@node-rs/argon2", "@prisma/client", "prisma"],
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./src/generated/prisma/**/*"],
+  },
   experimental:{
     staleTimes:{
       dynamic: 30  // Set the dynamic stale time to 30 seconds
