@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Send, X, Bot, User, Maximize2, Minimize2, SquarePen } from "lucide-react"
+import { Send, Bot, User, Maximize2, Minimize2, SquarePen } from "lucide-react"
 
 import { Message } from "@/generated/prisma"
 import { useSendMessageToAI, useClearConversation } from "@/hooks"
@@ -203,15 +203,6 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                 ) : (
                   <Maximize2 className="h-4 w-4 text-muted-foreground" />
                 )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="h-8 w-8 rounded-full hover:bg-destructive/10"
-                aria-label="Close chat"
-              >
-                <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
               </Button>
             </div>
           </div>
