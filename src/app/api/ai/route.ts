@@ -239,6 +239,39 @@ DATA:
   }
 }
 
-    
+const clearConversationSchema = z.object({
+  conversationId: z.string().uuid(),
+});
 
+export const DELETE = async (req: NextRequest) => {
+  try {
+    const body = await req.json();
+    const { conversationId } = clearConversationSchema.parse(body);
 
+    const sessionUser = await validateAuthRequest();
+    if (!sessionUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: { sellerId: true, seller: { select: { clerkId: true } } },
+    });
+
+    if (!conversation) {
+      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
+    }
+
+    if (conversation.seller.clerkId !== sessionUser.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    await prisma.message.deleteMany({ where: { conversationId } });
+
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    console.error(err);
+    const errorMessage = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
