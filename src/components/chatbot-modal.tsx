@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Send, X, Bot, User, Maximize2, Minimize2 } from "lucide-react"
+import { Send, X, Bot, User, Maximize2, Minimize2, SquarePen } from "lucide-react"
 
 import { Message } from "@/generated/prisma"
-import { useSendMessageToAI } from "@/hooks"
+import { useSendMessageToAI, useClearConversation } from "@/hooks"
 
 import { v4 as uuidv4 } from "uuid"
 
@@ -39,6 +39,17 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   const sendMessageMutation = useSendMessageToAI()
+  const clearConversationMutation = useClearConversation()
+
+  const handleNewConversation = async () => {
+    if (isTyping || clearConversationMutation.isPending) return
+    try {
+      await clearConversationMutation.mutateAsync({ conversationId })
+      setMessages([])
+    } catch {
+      // mutation failure is already tracked in clearConversationMutation.error
+    }
+  }
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -147,6 +158,18 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
               </div>
             </div>
             <div className="flex items-center gap-1">
+              {/* New conversation button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNewConversation}
+                disabled={isTyping || clearConversationMutation.isPending}
+                className="h-8 w-8 rounded-full hover:bg-muted"
+                aria-label="New conversation"
+                title="New conversation"
+              >
+                <SquarePen className="h-4 w-4 text-muted-foreground" />
+              </Button>
               {/* Fullscreen toggle */}
               <Button
                 variant="ghost"

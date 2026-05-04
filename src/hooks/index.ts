@@ -170,3 +170,19 @@ type ApiProp = {
       return res.json()
     },
   })
+
+export const useClearConversation = () =>
+  useMutation<void, Error, { conversationId: string }>({
+    mutationFn: async ({ conversationId }) => {
+      const res = await fetch("/api/ai", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Failed to clear conversation")
+      }
+    },
+  })
