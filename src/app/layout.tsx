@@ -59,7 +59,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <NextSSRPlugin routerConfig={extractRouterConfig(fileRouter)} />
-          <ReactQueryProvider> {children} </ReactQueryProvider>
+          <ReactQueryProvider > {children} </ReactQueryProvider>
           <Toaster/>
         </ThemeProvider>
       </body>

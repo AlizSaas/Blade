@@ -17,7 +17,7 @@ export default function ChatbotToggle({ conversationId, initialMessages }: ChatP
   return (
     <>
       {/* Floating Chat Button */}
-      <div className="fixed bottom-6 right-6 z-[60]">
+      <div className="fixed bottom-6 right-6 z-[9999]">
         <Button
           onClick={toggle}
           className={`h-14 w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-105 ${

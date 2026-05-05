@@ -74,7 +74,7 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
 
     const userMessage: Message = {
       content: text,
-      Role: 'USER',
+      Role: "USER",
       conversationId,
       createdAt: new Date(),
       id: uuidv4(),
@@ -84,7 +84,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
     setInputValue("")
     setIsTyping(true)
 
-    // Add a streaming placeholder that will be updated chunk-by-chunk
     const tempId = uuidv4()
     const streamingPlaceholder: Message = {
       id: tempId,
@@ -100,7 +99,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
       { conversationId, content: text },
       {
         onChunk: (chunk: string) => {
-          // Hide the typing indicator the moment the first token arrives
           setIsTyping(false)
           setMessages((prev) =>
             prev.map((m) =>
@@ -109,7 +107,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
           )
         },
         onDone: ({ id, createdAt }: { id: string; createdAt: Date }) => {
-          // Replace the temp id with the real persisted message id
           setMessages((prev) =>
             prev.map((m) => (m.id === tempId ? { ...m, id, createdAt } : m)),
           )
@@ -149,7 +146,7 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
   const isEmpty = messages.length === 0
 
   return (
-    <Dialog open={isOpen} onOpenChange={close}>
+    <Dialog modal={false} open={isOpen}>
       <DialogContent
         className={`p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background transition-all duration-300 ${
           isFullscreen
@@ -157,7 +154,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
             : "sm:max-w-md max-h-[85vh] h-[500px] lg:max-h-[80vh] lg:h-[600px]"
         }`}
         showCloseButton={false}
-        onInteractOutside={(e) => e.preventDefault()}
       >
         {/* Header */}
         <DialogHeader className="px-4 py-3 border-b border-border flex-shrink-0 bg-card">
@@ -177,7 +173,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
               </div>
             </div>
             <div className="flex items-center gap-1">
-              {/* New conversation button */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -189,7 +184,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
               >
                 <SquarePen className="h-4 w-4 text-muted-foreground" />
               </Button>
-              {/* Fullscreen toggle */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -203,7 +197,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
                   <Maximize2 className="h-4 w-4 text-muted-foreground" />
                 )}
               </Button>
-              {/* Close button */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -233,7 +226,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
                 <p className="text-sm font-medium text-foreground">How can I help you today?</p>
                 <p className="text-xs text-muted-foreground mt-1">Ask me anything about your requests</p>
 
-                {/* Quick action chips — shown inline when chat is empty */}
                 <div className="mt-6 flex flex-col gap-2 w-full max-w-sm">
                   {QUICK_ACTIONS.map((action) => (
                     <button
@@ -249,56 +241,60 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
               </div>
             )}
 
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-2 ${message.Role === "USER" ? "justify-end" : "justify-start"}`}
-              >
-                {message.Role === "AI" && (
-                  <Avatar className="h-7 w-7 mt-1 flex-shrink-0">
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600">
-                      <Bot className="h-3.5 w-3.5 text-white" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
+            {messages.map((message) => {
+              // Don't render the streaming placeholder until it has content
+              if (message.id === streamingMessageId && message.content.length === 0) return null
 
+              return (
                 <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
-                    message.Role === "USER"
-                      ? "bg-blue-600 text-white rounded-br-md"
-                      : "bg-muted text-foreground rounded-bl-md"
-                  }`}
+                  key={message.id}
+                  className={`flex gap-2 ${message.Role === "USER" ? "justify-end" : "justify-start"}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                    {message.content}
-                    {/* Blinking cursor shown while this specific message is streaming */}
-                    {message.id === streamingMessageId && (
-                      <span aria-hidden="true" className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse align-middle" />
-                    )}
-                  </p>
-                  {message.content.length > 0 && (
-                    <p
-                      className={`text-[10px] mt-1.5 ${
-                        message.Role === "USER" ? "text-blue-200" : "text-muted-foreground"
-                      }`}
-                    >
-                      {message.createdAt.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                  {message.Role === "AI" && (
+                    <Avatar className="h-7 w-7 mt-1 flex-shrink-0">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600">
+                        <Bot className="h-3.5 w-3.5 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+
+                  <div
+                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+                      message.Role === "USER"
+                        ? "bg-blue-600 text-white rounded-br-md"
+                        : "bg-muted text-foreground rounded-bl-md"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {message.content}
+                      {message.id === streamingMessageId && (
+                        <span aria-hidden="true" className="inline-block w-0.5 h-4 bg-current ml-0.5 animate-pulse align-middle" />
+                      )}
                     </p>
+                    {message.content.length > 0 && (
+                      <p
+                        className={`text-[10px] mt-1.5 ${
+                          message.Role === "USER" ? "text-blue-200" : "text-muted-foreground"
+                        }`}
+                      >
+                        {message.createdAt.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    )}
+                  </div>
+
+                  {message.Role === "USER" && (
+                    <Avatar className="h-7 w-7 mt-1 flex-shrink-0">
+                      <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-500 dark:to-gray-600">
+                        <User className="h-3.5 w-3.5 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
                   )}
                 </div>
-
-                {message.Role === "USER" && (
-                  <Avatar className="h-7 w-7 mt-1 flex-shrink-0">
-                    <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-700 dark:from-gray-500 dark:to-gray-600">
-                      <User className="h-3.5 w-3.5 text-white" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-            ))}
+              )
+            })}
 
             {/* Typing indicator — shown while waiting for the first streaming token */}
             {isTyping && (
@@ -347,7 +343,6 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
 
         {/* Input Area */}
         <div className="p-3 border-t border-border flex-shrink-0 bg-card">
-          {/* Quick action chips row — mobile/tablet when messages exist */}
           {!isEmpty && (
             <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1 lg:hidden">
               {QUICK_ACTIONS.map((action) => (

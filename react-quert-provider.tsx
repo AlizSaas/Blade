@@ -12,9 +12,9 @@ export default function ReactQueryProvider({
   const [client] = useState(new QueryClient());
 
   return (
-    <QueryClientProvider client={client}>
+    <QueryClientProvider  client={client}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ReactQueryDevtools  buttonPosition={'bottom-left'}initialIsOpen={false} />
     </QueryClientProvider>
   );
 }
