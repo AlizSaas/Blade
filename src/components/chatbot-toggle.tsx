@@ -9,8 +9,6 @@ import { useChatbotStore } from "@/store/chatbot-store"
 type ChatProps = {
   conversationId: string
   initialMessages: Message[]
-  plan?: string
-  checkoutSessionUrl?: string
 }
 
 export default function ChatbotToggle({ conversationId, initialMessages }: ChatProps) {

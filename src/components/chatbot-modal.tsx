@@ -149,7 +149,7 @@ export default function ChatbotModal({ conversationId, initialMessages }: Chatbo
   const isEmpty = messages.length === 0
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) close() }}>
+    <Dialog open={isOpen} onOpenChange={close}>
       <DialogContent
         className={`p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background transition-all duration-300 ${
           isFullscreen
