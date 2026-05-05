@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, X } from "lucide-react"
 import ChatbotModal from "./chatbot-modal"
 import { Message } from "@/generated/prisma"
+import { useChatbotStore } from "@/store/chatbot-store"
 
 type ChatProps = {
   conversationId: string
@@ -13,23 +13,15 @@ type ChatProps = {
   checkoutSessionUrl?: string
 }
 
-export default function ChatbotToggle({ conversationId, initialMessages, plan }: ChatProps) {
-  const [isOpen, setIsOpen] = useState(false)
-
-  const toggleChatbot = () => {
-    setIsOpen(!isOpen)
-  }
-
-  const closeChatbot = () => {
-    setIsOpen(false)
-  }
+export default function ChatbotToggle({ conversationId, initialMessages }: ChatProps) {
+  const { isOpen, toggle } = useChatbotStore()
 
   return (
     <>
       {/* Floating Chat Button */}
       <div className="fixed bottom-6 right-6 z-[60]">
         <Button
-          onClick={toggleChatbot}
+          onClick={toggle}
           className={`h-14 w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-105 ${
             isOpen
               ? "bg-red-500 hover:bg-red-600"
@@ -58,9 +50,6 @@ export default function ChatbotToggle({ conversationId, initialMessages, plan }:
       {/* Chatbot Modal */}
       <ChatbotModal
         conversationId={conversationId}
-        isOpen={isOpen}
-        onClose={closeChatbot}
-        onToggle={toggleChatbot}
         initialMessages={initialMessages}
       />
     </>
