@@ -6,17 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Send, Bot, User, Maximize2, Minimize2, SquarePen } from "lucide-react"
+import { Send, Bot, User, Maximize2, Minimize2, SquarePen, X } from "lucide-react"
 
 import { Message } from "@/generated/prisma"
 import { useSendMessageToAI, useClearConversation } from "@/hooks"
+import { useChatbotStore } from "@/store/chatbot-store"
 
 import { v4 as uuidv4 } from "uuid"
 
 interface ChatbotModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onToggle: () => void
   conversationId: string
   initialMessages: Message[]
 }
@@ -33,7 +31,8 @@ const QUICK_ACTIONS = [
   "What is my total number of requests?",
 ]
 
-export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId, initialMessages }: ChatbotModalProps) {
+export default function ChatbotModal({ conversationId, initialMessages }: ChatbotModalProps) {
+  const { isOpen, close } = useChatbotStore()
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
@@ -150,7 +149,7 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
   const isEmpty = messages.length === 0
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={close}>
       <DialogContent
         className={`p-0 gap-0 flex flex-col rounded-2xl overflow-hidden border-border bg-background transition-all duration-300 ${
           isFullscreen
@@ -203,6 +202,17 @@ export default function ChatbotModal({ isOpen, onClose, onToggle, conversationId
                 ) : (
                   <Maximize2 className="h-4 w-4 text-muted-foreground" />
                 )}
+              </Button>
+              {/* Close button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={close}
+                className="h-8 w-8 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
+                aria-label="Close chat"
+                title="Close chat"
+              >
+                <X className="h-4 w-4 text-muted-foreground hover:text-red-500" />
               </Button>
             </div>
           </div>
