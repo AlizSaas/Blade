@@ -88,6 +88,8 @@ url       String
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now())
 
+  @@index([sellerId, status])
+  @@index([sellerId, createdAt])
   @@map("bike_request")
 }
 
@@ -111,6 +113,9 @@ model Conversation {
 
   messages      Message[]
 
+  title         String?
+  archivedAt    DateTime?
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   @@unique([companyId, sellerId])
@@ -129,16 +134,29 @@ model Message {
 
   content         String
   Role             MessageRole @default(USER) // USER or AI 
+  tokenCount      Int?
   createdAt      DateTime @default(now())
 
 
-
+  @@index([conversationId, createdAt])
   @@map("message")
 } 
 
 enum MessageRole {
   USER
   AI
+}
+
+model ToolCall {
+  id         String   @id @default(uuid())
+  messageId  String
+  toolName   String
+  args       Json
+  result     Json
+  durationMs Int?
+  createdAt  DateTime @default(now())
+
+  @@map("tool_call")
 }
 
 
