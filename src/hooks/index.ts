@@ -117,19 +117,25 @@ export default function useMediaUpload() {
       useWebWorker: true,
     };
 
+    const maxServerSize = 16 * 1024 * 1024; // 16MB server limit
+
     Promise.all(
       files.map(async (file) => {
         try {
           const compressedFile = await imageCompression(file, compressionOptions);
-          // Preserve original file name
           return new File([compressedFile], file.name, { type: compressedFile.type });
         } catch (error) {
-          console.error("Compression failed, uploading original:", error);
+          console.error("Compression failed, checking original size:", error);
+          if (file.size > maxServerSize) {
+            throw new Error(`Image "${file.name}" is too large and could not be compressed.`);
+          }
           return file;
         }
       })
     ).then((compressedFiles) => {
       startUpload(compressedFiles);
+    }).catch((error) => {
+      toast.error(error.message || "Failed to process images. Please try again.");
     });
   }
 
