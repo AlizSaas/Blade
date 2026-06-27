@@ -8,7 +8,7 @@ const f = createUploadthing();
 export const fileRouter = {
   bikeRequestImage: f({
     image: { 
-      maxFileSize: "4MB", 
+      maxFileSize: "16MB", 
       
     },
   })
