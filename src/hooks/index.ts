@@ -2,6 +2,7 @@ import { toast } from "sonner";
 import { useUploadThing } from "@/lib/uploadthing";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import imageCompression from "browser-image-compression";
 
 export interface Attachment {
   file: File;
@@ -100,16 +101,42 @@ export default function useMediaUpload() {
       return;
     }
 
-    // Validate file sizes (4MB max as per your router config)
-    const maxSize = 4 * 1024 * 1024; // 4MB in bytes
+    // Validate file sizes (20MB max)
+    const maxSize = 20 * 1024 * 1024; // 20MB in bytes
     const oversizedFiles = files.filter(file => file.size > maxSize);
     
     if (oversizedFiles.length > 0) {
-      toast.error("Images must be smaller than 4MB.");
+      toast.error("Images must be smaller than 20MB.");
       return;
     }
 
-    startUpload(files);
+    // Compress images before uploading
+    const compressionOptions = {
+      maxSizeMB: 4,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+
+    const maxServerSize = 16 * 1024 * 1024; // 16MB server limit
+
+    Promise.all(
+      files.map(async (file) => {
+        try {
+          const compressedFile = await imageCompression(file, compressionOptions);
+          return new File([compressedFile], file.name, { type: compressedFile.type });
+        } catch (error) {
+          console.error("Compression failed, checking original size:", error);
+          if (file.size > maxServerSize) {
+            throw new Error(`Image "${file.name}" is too large and could not be compressed.`);
+          }
+          return file;
+        }
+      })
+    ).then((compressedFiles) => {
+      startUpload(compressedFiles);
+    }).catch((error) => {
+      toast.error(error.message || "Failed to process images. Please try again.");
+    });
   }
 
   function removeAttachment(fileName: string) {
