@@ -88,18 +88,18 @@ export default function RequestActionModal({ request, actionType, isOpen, onClos
 
         <div className="space-y-4">
           {/* Request Details Card */}
-          <Card className="border-gray-200">
+          <Card className="border-border bg-muted/20">
             <CardContent className="p-4 space-y-4">
               {/* Buyer Info */}
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                  <User className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="font-medium text-sm">
                     {request.buyer.firstname} {request.buyer.lastname || ""}
                   </p>
-                  <p className="text-xs text-gray-500">{request.buyer.email}</p>
+                  <p className="text-xs text-muted-foreground">{request.buyer.email}</p>
                 </div>
               </div> 
 
@@ -110,28 +110,28 @@ export default function RequestActionModal({ request, actionType, isOpen, onClos
                 </div>
                 <div>
                   <p className="font-medium text-sm">{request.bikeModel}</p>
-                  <p className="text-xs text-gray-500">Requested bike model</p>
+                  <p className="text-xs text-muted-foreground">Requested bike model</p>
                 </div>
               </div>
 
               {/* Date and Status */}
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between border-t border-border pt-2">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs text-gray-600">{new Date(request.createdAt).toLocaleDateString()}</span>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">{new Date(request.createdAt).toLocaleDateString()}</span>
                 </div>
-                <Badge variant="outline" className="text-yellow-600 border-yellow-600 text-xs">
+                <Badge variant="outline" className="border-amber-300 bg-amber-50 text-xs text-amber-700 dark:border-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
                   {request.status}
                 </Badge>
               </div>
 
               {/* Buyer's Reason */}
-              <div className="pt-2 border-t border-gray-100">
+              <div className="border-t border-border pt-2">
                 <div className="flex items-start gap-2">
-                  <MessageSquare className="w-4 h-4 text-gray-400 mt-0.5" />
+                  <MessageSquare className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <div className="flex-1">
-                    <p className="font-medium text-xs text-gray-700 mb-1">Buyer&apos;s Reason:</p>
-                    <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded text-wrap break-words">
+                    <p className="mb-1 text-xs font-medium text-foreground">Buyer&apos;s Reason:</p>
+                    <p className="rounded bg-background/80 p-2 text-xs text-muted-foreground text-wrap break-words">
                       {request.reason}
                     </p>
                   </div>
@@ -140,8 +140,8 @@ export default function RequestActionModal({ request, actionType, isOpen, onClos
 
               {/* Show bike image if available */}
               {request.url && (
-                <div className="pt-2 border-t border-gray-100">
-                  <p className="font-medium text-xs text-gray-700 mb-2">Attached Image:</p>
+                <div className="border-t border-border pt-2">
+                  <p className="mb-2 text-xs font-medium text-foreground">Attached Image:</p>
                   <div className="flex justify-center">
                     <div className="relative w-full max-w-xs">
                       <Image
@@ -149,7 +149,7 @@ export default function RequestActionModal({ request, actionType, isOpen, onClos
                         width={300}
                         height={200}
                         alt="Bike request"
-                        className="w-full h-auto object-cover rounded-lg border border-gray-200 shadow-sm"
+                        className="h-auto w-full rounded-lg border border-border object-cover shadow-sm"
                         priority={false}
                         quality={85}
                       />
@@ -178,7 +178,7 @@ export default function RequestActionModal({ request, actionType, isOpen, onClos
               className="resize-none text-sm"
               disabled={isPending}
             />
-            <p className="text-xs text-gray-500">This message will be sent to the buyer along with your decision.</p>
+            <p className="text-xs text-muted-foreground">This message will be sent to the buyer along with your decision.</p>
           </div>
         </div>
 

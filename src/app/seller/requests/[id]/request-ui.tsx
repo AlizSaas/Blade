@@ -40,21 +40,21 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
     switch (status) {
       case "PENDING":
         return (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
             <Clock className="w-4 h-4 mr-2" />
             Pending Review
           </Badge>
         )
       case "APPROVED":
         return (
-          <Badge variant="outline" className="text-green-600 border-green-600">
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
             <CheckCircle className="w-4 h-4 mr-2" />
             Approved
           </Badge>
         )
       case "REJECTED":
         return (
-          <Badge variant="outline" className="text-red-600 border-red-600">
+          <Badge variant="outline" className="border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
             <XCircle className="w-4 h-4 mr-2" />
             Rejected
           </Badge>
@@ -67,13 +67,13 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":
-        return "border-l-yellow-500 bg-yellow-50"
+        return "border-l-amber-500 bg-amber-50/80 dark:bg-amber-500/10"
       case "APPROVED":
-        return "border-l-green-500 bg-green-50"
+        return "border-l-emerald-500 bg-emerald-50/80 dark:bg-emerald-500/10"
       case "REJECTED":
-        return "border-l-red-500 bg-red-50"
+        return "border-l-rose-500 bg-rose-50/80 dark:bg-rose-500/10"
       default:
-        return "border-l-gray-500 bg-gray-50"
+        return "border-l-border bg-muted/40"
     }
   }
 
@@ -121,7 +121,7 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6 text-foreground">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -133,8 +133,8 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Bike Request Details</h1>
-              <p className="text-gray-600 mt-1">Request ID: {request.id}</p>
+              <h1 className="text-3xl font-bold text-foreground">Bike Request Details</h1>
+              <p className="mt-1 text-muted-foreground">Request ID: {request.id}</p>
             </div>
             <div className="flex items-center gap-3">
               {getStatusBadge(request.status)}
@@ -156,23 +156,23 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Bike Model</label>
-                  <p className="text-lg font-semibold text-gray-900">{request.bikeModel}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Bike Model</label>
+                  <p className="text-lg font-semibold text-foreground">{request.bikeModel}</p>
                 </div>
                 <Separator />
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Reason for Request</label>
-                  <p className="text-gray-900 mt-1 leading-relaxed">{request.reason}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Reason for Request</label>
+                  <p className="mt-1 leading-relaxed text-foreground">{request.reason}</p>
                   <br />
-                  <label className="text-sm font-medium text-gray-700 mt-2">Additional Notes from seller</label>
-                  <p className="text-gray-900 mt-1 leading-relaxed">{request.notes}</p>
+                  <label className="mt-2 text-sm font-medium text-muted-foreground">Additional Notes from seller</label>
+                  <p className="mt-1 leading-relaxed text-foreground">{request.notes}</p>
                   
                 </div>
                 <Separator />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Request Date</label>
-                    <p className="text-gray-900 flex items-center gap-2 mt-1">
+                    <label className="text-sm font-medium text-muted-foreground">Request Date</label>
+                    <p className="mt-1 flex items-center gap-2 text-foreground">
                       <Calendar className="w-4 h-4" />
                       {new Date(request.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -184,8 +184,8 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Last Updated</label>
-                    <p className="text-gray-900 flex items-center gap-2 mt-1">
+                    <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
+                    <p className="mt-1 flex items-center gap-2 text-foreground">
                       <Clock className="w-4 h-4" />
                       {new Date(request.updatedAt).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -215,7 +215,7 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
                         width={400}
                         height={300}
                         alt={`Bike request for ${request.bikeModel}`}
-                        className="w-full h-auto object-cover rounded-lg border border-gray-200 shadow-sm"
+                        className="h-auto w-full rounded-lg border border-border object-cover shadow-sm"
                         quality={85}
                         priority={false}
                       />
@@ -240,37 +240,37 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={request.buyer.image || undefined} />
-                    <AvatarFallback className="bg-blue-100 text-blue-600">
+                    <AvatarFallback className="bg-blue-500/15 text-blue-600 dark:text-blue-300">
                       {request.buyer.firstname.charAt(0)}
                       {request.buyer.lastname?.charAt(0) || ""}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-foreground">
                       {request.buyer.firstname} {request.buyer.lastname}
                     </p>
-                    <p className="text-sm text-gray-500 capitalize">{request.buyer.role.toLowerCase()}</p>
+                    <p className="text-sm capitalize text-muted-foreground">{request.buyer.role.toLowerCase()}</p>
                   </div>
                 </div>
                 <Separator />
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-600">Email:</span>
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Email:</span>
                     <a href={`mailto:${request.buyer.email}`} className="text-blue-600 hover:underline">
                       {request.buyer.email}
                     </a>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Building2 className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-600 ">Company: {request.buyer.company.name}</span>
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Company: {request.buyer.company.name}</span>
              
                     
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-600">Member since:</span>
-                    <span className="text-gray-900">{new Date(request.buyer.createdAt).toLocaleDateString()}</span>
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Member since:</span>
+                    <span className="text-foreground">{new Date(request.buyer.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -311,7 +311,7 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <div>
                       <p className="font-medium">Request Submitted</p>
-                      <p className="text-gray-500">
+                      <p className="text-muted-foreground">
                         {new Date(request.createdAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -330,7 +330,7 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
                       ></div>
                       <div>
                         <p className="font-medium">Request {request.status}</p>
-                        <p className="text-gray-500">
+                        <p className="text-muted-foreground">
                           {new Date(request.updatedAt).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",

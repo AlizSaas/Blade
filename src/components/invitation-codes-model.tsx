@@ -112,7 +112,7 @@ const generateCodeMutation = useGenerateCodeMutation()
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold">Generate New Code</h3>
-              <p className="text-sm text-gray-600">Create a new invitation code for employees</p>
+              <p className="text-sm text-muted-foreground">Create a new invitation code for employees</p>
             </div>
             <Button onClick={handleGenerateCode} disabled={generateCodeMutation.isPending}>
               {generateCodeMutation.isPending ? (
@@ -157,7 +157,7 @@ const generateCodeMutation = useGenerateCodeMutation()
                         {activeCodes.map((code) => (
                           <TableRow key={code.id}>
                             <TableCell className="font-mono text-lg font-semibold">{code.code}</TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                            <TableCell className="text-sm text-muted-foreground">
                               {new Date(code.createdAt).toLocaleDateString()}
                             </TableCell>
                             <TableCell>
@@ -193,9 +193,9 @@ const generateCodeMutation = useGenerateCodeMutation()
                     </Table>
                   ) : (
                     <div className="text-center py-8">
-                      <Code2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">No active codes available</p>
-                      <p className="text-sm text-gray-400">Generate a new code to get started</p>
+                      <Code2 className="mx-auto mb-4 h-12 w-12 text-muted-foreground/40" />
+                      <p className="text-muted-foreground">No active codes available</p>
+                      <p className="text-sm text-muted-foreground/80">Generate a new code to get started</p>
                     </div>
                   )}
                 </CardContent>
@@ -222,7 +222,7 @@ const generateCodeMutation = useGenerateCodeMutation()
                         {usedCodes.map((code) => (
                           <TableRow key={code.id} className="opacity-60">
                             <TableCell className="font-mono text-lg">{code.code}</TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                            <TableCell className="text-sm text-muted-foreground">
                               {new Date(code.createdAt).toLocaleDateString()}
                             </TableCell>
                             <TableCell>
@@ -254,7 +254,7 @@ const generateCodeMutation = useGenerateCodeMutation()
               {/* Loading indicator for infinite scroll */}
               {isFetchingNextPage && (
                 <div className="flex justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               )}
             </InfiniteScrollContainer>
