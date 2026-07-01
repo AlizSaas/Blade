@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import useMediaUpload from "@/hooks/index"
 import { createBikeRequest } from "@/lib/actions/buyer"
 import Link from "next/link"
+import Image from "next/image"
 
 // Form validation schema
 const bikeRequestSchema = z.object({
@@ -293,10 +294,12 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                         <div className="mt-4">
                           <Label className="text-sm font-medium">Preview:</Label>
                           <div className="mt-2 rounded-lg border border-border bg-muted/40 p-2">
-                            <img 
-                              src={getUploadedImageUrl()} 
-                              alt="Uploaded bike" 
-                              className="max-w-full h-32 object-cover rounded"
+                            <Image
+                              src={getUploadedImageUrl() || "/placeholder.svg"}
+                              alt="Uploaded bike"
+                              width={320}
+                              height={128}
+                              className="h-32 max-w-full rounded object-cover"
                             />
                           </div>
                         </div>
