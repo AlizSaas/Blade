@@ -106,7 +106,7 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
   const selectedSeller = sellers.find((s) => s.id === form.watch("sellerId")) // Find the selected seller
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6 text-foreground">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -121,8 +121,8 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
           <div className="flex items-center gap-3">
             <Bike className="w-8 h-8 text-blue-600" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">New Bike Request</h1>
-              <p className="text-gray-600 mt-1">Submit a request to get approval for a bike</p>
+              <h1 className="text-3xl font-bold text-foreground">New Bike Request</h1>
+              <p className="mt-1 text-muted-foreground">Submit a request to get approval for a bike</p>
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                                     <User className="w-4 h-4" />
                                     <div>
                                       <div className="font-medium">{seller.name}</div>
-                                      <div className="text-sm text-gray-500">{seller.company}</div>
+                                      <div className="text-sm text-muted-foreground">{seller.company}</div>
                                     </div>
                                   </div>
                                 </SelectItem>
@@ -182,7 +182,7 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                             <Input
                               {...field}
                               placeholder="e.g., Trek Mountain Bike X1, Specialized Road Bike Pro"
-                              className="bg-white"
+                              className="bg-background"
                             />
                           </FormControl>
                           <FormDescription>Specify the exact bike model you&apos;re interested in</FormDescription>
@@ -203,7 +203,7 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                               {...field}
                               placeholder="Please explain why you need this bike and how you plan to use it..."
                               rows={4}
-                              className="bg-white resize-none"
+                              className="resize-none bg-background"
                             />
                           </FormControl>
                           <FormDescription>
@@ -218,7 +218,7 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                     {/* Image Upload */}
                     <div className="space-y-4">
                       <Label>Bike Image (Optional)</Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                      <div className="rounded-lg border-2 border-dashed border-border bg-card/40 p-6 text-center transition-colors hover:border-primary/40 hover:bg-accent/30">
                         <input
                           type="file"
                           accept="image/jpeg,image/png,image/webp"
@@ -231,11 +231,11 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                           htmlFor="image-upload"
                           className={`cursor-pointer ${isUploading || attachments.length >= 1 ? "cursor-not-allowed opacity-50" : ""}`}
                         >
-                          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">
+                          <Upload className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">
                             {attachments.length >= 1 ? "Image uploaded" : "Click to upload bike image"}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">JPEG, PNG, WebP up to 20MB (auto-compressed)</p>
+                          <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, WebP up to 20MB (auto-compressed)</p>
                         </label>
                       </div>
 
@@ -243,8 +243,8 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                       {isUploading && uploadProgress !== undefined && (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">Uploading...</span>
-                            <span className="text-gray-600">{Math.round(uploadProgress)}%</span>
+                            <span className="text-muted-foreground">Uploading...</span>
+                            <span className="text-muted-foreground">{Math.round(uploadProgress)}%</span>
                           </div>
                           <Progress value={uploadProgress} className="h-2" />
                         </div>
@@ -256,13 +256,13 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                           {attachments.map((attachment) => (
                             <div
                               key={attachment.file.name}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+                              className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-3"
                             >
                               <div className="flex items-center gap-3">
-                                <ImageIcon className="w-5 h-5 text-gray-400" />
+                                <ImageIcon className="h-5 w-5 text-muted-foreground" />
                                 <div>
-                                  <p className="text-sm font-medium text-gray-900">{attachment.file.name}</p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-sm font-medium text-foreground">{attachment.file.name}</p>
+                                  <p className="text-xs text-muted-foreground">
                                     {(attachment.file.size / 1024 / 1024).toFixed(2)} MB
                                   </p>
                                 </div>
@@ -292,7 +292,7 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                       {hasUploadedImages() && (
                         <div className="mt-4">
                           <Label className="text-sm font-medium">Preview:</Label>
-                          <div className="mt-2 border rounded-lg p-2 bg-gray-50">
+                          <div className="mt-2 rounded-lg border border-border bg-muted/40 p-2">
                             <img 
                               src={getUploadedImageUrl()} 
                               alt="Uploaded bike" 
@@ -345,17 +345,17 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/15">
                         <User className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{selectedSeller.name}</p>
-                        <p className="text-sm text-gray-500">{selectedSeller.email}</p>
+                      <p className="font-medium text-foreground">{selectedSeller.name}</p>
+                      <p className="text-sm text-muted-foreground">{selectedSeller.email}</p>
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Company</p>
-                      <p className="text-sm text-gray-600">{selectedSeller.company}</p>
+                      <p className="text-sm font-medium text-foreground">Company</p>
+                      <p className="text-sm text-muted-foreground">{selectedSeller.company}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -403,22 +403,22 @@ export default function NewRequestPage({ sellers }: { sellers: { id: string; nam
                     <p className="text-sm">Your request will be sent to the seller</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xs font-medium">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                       2
                     </div>
-                    <p className="text-sm text-gray-500">Seller reviews your request</p>
+                    <p className="text-sm text-muted-foreground">Seller reviews your request</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xs font-medium">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                       3
                     </div>
-                    <p className="text-sm text-gray-500">You&apos;ll receive approval or feedback</p>
+                    <p className="text-sm text-muted-foreground">You&apos;ll receive approval or feedback</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xs font-medium">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                       4
                     </div>
-                    <p className="text-sm text-gray-500">Contact seller if approved</p>
+                    <p className="text-sm text-muted-foreground">Contact seller if approved</p>
                   </div>
                 </div>
               </CardContent>
