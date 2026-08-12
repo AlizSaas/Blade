@@ -1,59 +1,81 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Users, UserCheck,  } from "lucide-react"
+import { Users, UserCheck } from "lucide-react"
 
 export default function CustomersTableSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background p-6">
+      <div className="mx-auto max-w-7xl">
         {/* Header Skeleton */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-8 h-8 text-gray-300" />
+          <div className="mb-2 flex items-center gap-3">
+            <Users className="h-8 w-8 text-muted-foreground/50" />
             <Skeleton className="h-9 w-64" />
           </div>
+
           <Skeleton className="h-5 w-80" />
         </div>
 
         {/* Stats Cards Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Customers</CardTitle>
-              <Users className="h-4 w-4 text-gray-300" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Customers
+              </CardTitle>
+
+              <Users className="h-4 w-4 text-muted-foreground/50" />
             </CardHeader>
+
             <CardContent>
-              <Skeleton className="h-8 w-12 mb-1" />
+              <Skeleton className="mb-1 h-8 w-12" />
               <Skeleton className="h-3 w-20" />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Buyers</CardTitle>
-              <UserCheck className="h-4 w-4 text-gray-300" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Buyers
+              </CardTitle>
+
+              <UserCheck className="h-4 w-4 text-muted-foreground/50" />
             </CardHeader>
+
             <CardContent>
-              <Skeleton className="h-8 w-8 mb-1" />
+              <Skeleton className="mb-1 h-8 w-8" />
               <Skeleton className="h-3 w-24" />
             </CardContent>
           </Card>
-
-        
         </div>
 
         {/* Table Skeleton */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-gray-300" />
+              <Users className="h-5 w-5 text-muted-foreground/50" />
               <Skeleton className="h-6 w-32" />
             </CardTitle>
+
             <CardDescription>
               <Skeleton className="h-4 w-64" />
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <Table>
               <TableHeader>
@@ -66,14 +88,18 @@ export default function CustomersTableSkeleton() {
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
-                {/* Generate multiple skeleton rows */}
                 {Array.from({ length: 8 }).map((_, index) => (
-                  <TableRow key={index} className="hover:bg-gray-50">
-                    {/* Customer Column */}
+                  <TableRow
+                    key={index}
+                    className="hover:bg-muted/50"
+                  >
+                    {/* Customer */}
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Skeleton className="h-10 w-10 rounded-full" />
+
                         <div className="space-y-2">
                           <Skeleton className="h-4 w-32" />
                           <Skeleton className="h-3 w-20" />
@@ -81,7 +107,7 @@ export default function CustomersTableSkeleton() {
                       </div>
                     </TableCell>
 
-                    {/* Email Column */}
+                    {/* Email */}
                     <TableCell>
                       <div className="space-y-2">
                         <Skeleton className="h-4 w-48" />
@@ -89,33 +115,33 @@ export default function CustomersTableSkeleton() {
                       </div>
                     </TableCell>
 
-                    {/* Role Column */}
+                    {/* Role */}
                     <TableCell>
                       <Skeleton className="h-6 w-16 rounded-full" />
                     </TableCell>
 
-                    {/* Joined Column */}
+                    {/* Joined */}
                     <TableCell>
                       <Skeleton className="h-4 w-28" />
                     </TableCell>
 
-                    {/* Last Updated Column */}
+                    {/* Last Updated */}
                     <TableCell>
                       <Skeleton className="h-4 w-28" />
                     </TableCell>
 
-                    {/* Actions Column */}
+                    {/* Actions */}
                     <TableCell className="text-right">
-                      <Skeleton className="h-8 w-8 ml-auto" />
+                      <Skeleton className="ml-auto h-8 w-8" />
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
 
-            {/* Loading indicator at bottom */}
-            <div className="flex justify-center py-6 border-t">
-              <div className="flex items-center gap-2 text-gray-400">
+            {/* Loading indicator */}
+            <div className="flex justify-center border-t border-border py-6">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Skeleton className="h-5 w-5 rounded-full" />
                 <Skeleton className="h-4 w-32" />
               </div>
