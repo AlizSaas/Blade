@@ -122,8 +122,9 @@ export default function SellerDashboard() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto"> 
-        <div className="mb-4">
-          <h1 className="text-3xl font-bold text-foreground">Seller Dashboard</h1>
+        <div className="mb-4 flex justify-between items-center">
+         <div>
+           <h1 className="text-3xl font-bold text-foreground">Seller Dashboard</h1>
           <p className="text-muted-foreground mt-2">Manage your bike requests and inventory</p>
 
           <div className="flex items-center gap-4 mb-4 mt-2">
@@ -133,6 +134,13 @@ export default function SellerDashboard() {
               </Button>
             </Link>
           </div>
+          </div>
+          <Link href='/seller/ai'>
+          <Button variant="secondary" size="sm" className="mt-2">
+            AI Assistant <ArrowRight className="w-4 h-4 mr-2" />
+          </Button>
+          
+          </Link>
         </div>
 
         {/* Stats Cards */}

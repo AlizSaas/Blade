@@ -17,7 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Users, Trash2, UserCheck,  Loader2, AlertTriangle, ArrowLeft } from "lucide-react"
+import { Users, Trash2, UserCheck, Loader2, AlertTriangle, ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import InfiniteScrollContainer from "@/components/infinite-scroll-container"
@@ -27,11 +27,12 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 
 import CustomersTableSkeleton from "@/components/customer-skeleton"
 import Link from "next/link"
+import InvitationCodesModal from "@/components/invitation-codes-model"
 
 export default function CustomersPage() {
   const queryClient = useQueryClient()
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending, error,isLoading } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending, error, isLoading } = useInfiniteQuery({
     queryKey: ["customers"],
     queryFn: ({ pageParam }) =>
       kyInstance
@@ -46,21 +47,20 @@ export default function CustomersPage() {
   // Delete customer mutation
   const deleteCustomerMutation = useMutation({
     mutationFn: async (customerId: string) => {
-      await kyInstance.delete(`/api/saller/customers/${customerId}`);
+      await kyInstance.delete(`/api/saller/customers/${customerId}`)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast.success("Customer removed successfully");
+      queryClient.invalidateQueries({ queryKey: ["customers"] })
+      toast.success("Customer removed successfully")
     },
     onError: (error: unknown) => {
-      toast.error((error as Error)?.message || "Failed to remove customer");
+      toast.error((error as Error)?.message || "Failed to remove customer")
     },
-  });
+  })
 
   const handleDeleteCustomer = (customerId: string) => {
-    deleteCustomerMutation.mutate(customerId);
-  };
-
+    deleteCustomerMutation.mutate(customerId)
+  }
 
   const getInitials = (firstname: string, lastname: string | null) => {
     return `${firstname.charAt(0)}${lastname?.charAt(0) || ""}`.toUpperCase()
@@ -75,7 +75,7 @@ export default function CustomersPage() {
             Buyer
           </Badge>
         )
-    
+
       default:
         return <Badge variant="outline">{role}</Badge>
     }
@@ -113,29 +113,38 @@ export default function CustomersPage() {
       </div>
     )
   }
-if(isLoading) {
+  if (isLoading) {
     return (
-       <CustomersTableSkeleton/>
+      <CustomersTableSkeleton />
     )
-}
+  }
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-foreground">Customer Management</h1>
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <div className="flex items-center gap-3">
+              <Users className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-foreground">Customer Management</h1>
+            </div>
+            {/*
+              Lives here rather than in the page shell: this component
+              already owns the copy that references invitation codes (see
+              the empty state below), so the action that actually creates
+              them belongs in the same header, not floating above it.
+            */}
+            <InvitationCodesModal />
           </div>
           <p className="text-muted-foreground">Manage your company&apos;s customers and team members</p>
-           <div className="flex items-center gap-4 mb-4 mt-2">
-                    <Link href="/seller">
-                      <Button variant="default" size="sm">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Seller
-                      </Button>
-                    </Link>
-                  </div>
+          <div className="flex items-center gap-4 mb-4 mt-2">
+            <Link href="/seller">
+              <Button variant="default" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Seller
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Card */}
@@ -165,7 +174,7 @@ if(isLoading) {
           </Card>
 
         </div>
-         
+
 
         {/* Customers Table */}
         <Card>
@@ -238,14 +247,14 @@ if(isLoading) {
                               <div className="font-medium text-foreground">
                                 {customer.firstname} {customer.lastname || ""}
                               </div>
-                              
+
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
                             <div className="font-medium text-foreground">{customer.email}</div>
-                           
+
                           </div>
                         </TableCell>
                         <TableCell>{getRoleBadge(customer.role)}</TableCell>
@@ -289,7 +298,7 @@ if(isLoading) {
                                   onClick={() =>
                                     handleDeleteCustomer(
                                       customer.id,
-                                   
+
                                     )
                                   }
                                   className="bg-red-600 hover:bg-red-700"

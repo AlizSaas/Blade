@@ -20,21 +20,19 @@ import { createBuyer, createSeller } from "@/lib/actions/index"
 import { toast } from "sonner"
 import { Building2, Users, Globe } from "lucide-react"
 import { BuyerFormValues, buyerSchema, SellerFormValues, sellerSchema } from "@/lib/validation"
-
+import { ModeToggle } from "@/components/mode-toggle"
 
 interface OnboardingFormProps {
   userEmail: string
   firstName: string
-
 }
 
 const OnboardingForm = ({ userEmail, firstName }: OnboardingFormProps) => {
-   
   const router = useRouter()
   const { user, isLoaded } = useUser()
 
   const [accountType, setAccountType] = useState<"seller" | "buyer">("buyer")
- 
+
   const [error, setError] = useState<string | null>(null)
 
   const buyerForm = useForm<BuyerFormValues>({
@@ -57,81 +55,80 @@ const OnboardingForm = ({ userEmail, firstName }: OnboardingFormProps) => {
     },
   })
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const handleSellerSubmit = async (data: SellerFormValues) => {
+    if (!user) return
 
- const [isSubmitting, setIsSubmitting] = useState(false);
+    setError(null)
+    setIsSubmitting(true)
 
-const handleSellerSubmit = async (data: SellerFormValues) => {
-  if (!user) return;
+    const { error, success } = await createSeller(
+      data.companyName,
+      data.companyWebsite,
+      data.companyLogo,
+      user.id
+    )
 
-  setError(null);
-  setIsSubmitting(true);
+    if (!success) {
+      setError(error ?? "Something went wrong.")
+      toast.error(error ?? "Failed to create company. Please try again.")
+      setIsSubmitting(false)
+      return
+    }
 
-  const { error, success } = await createSeller(
-    data.companyName,
-    data.companyWebsite,
-    data.companyLogo,
-    user.id
-  );
+    toast.success("Company created successfully!")
 
-  if (!success) {
-    setError(error ?? "Something went wrong.");
-    toast.error(error ?? "Failed to create company. Please try again.");
-    setIsSubmitting(false);
-    return;
+    try {
+      await user.reload() // Reload user data to reflect changes
+    } catch (err) {
+      console.error("Failed to reload user:", err)
+    }
+
+    router.push("/seller")
   }
-
-  toast.success("Company created successfully!");
-
-  try {
-    await user.reload(); // Reload user data to reflect changes 
-  } catch (err) {
-    console.error("Failed to reload user:", err);
-  }
-
-  router.push("/seller");
-};
 
   const handleBuyerSubmit = async (data: BuyerFormValues) => {
     if (!user) {
       return
     }
-  setError(null);
-  setIsSubmitting(true);
+    setError(null)
+    setIsSubmitting(true)
 
-  const {error,success} = await createBuyer(user.id,data.invitationCode)
-  if (!success) {
-    setError(error ?? "Something went wrong.");
-    toast.error(error ?? "Failed to create company. Please try again.");
-    setIsSubmitting(false);
-    return;
-  }
+    const { error, success } = await createBuyer(user.id, data.invitationCode)
+    if (!success) {
+      setError(error ?? "Something went wrong.")
+      toast.error(error ?? "Failed to create company. Please try again.")
+      setIsSubmitting(false)
+      return
+    }
 
-  toast.success("Successfully joined company!");
-  try {
-    await user.reload(); // Reload user data to reflect changes
-  } catch (error) {
-    console.error("Failed to reload user:", error);
-  }
-  router.push("/buyer");
-
-    
+    toast.success("Successfully joined company!")
+    try {
+      await user.reload() // Reload user data to reflect changes
+    } catch (error) {
+      console.error("Failed to reload user:", error)
+    }
+    router.push("/buyer")
   }
 
   if (!isLoaded) {
-    return <div>Loading...</div>
+    return <div className="text-muted-foreground">Loading...</div>
   }
 
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Complete your account setup</CardTitle>
-        <CardDescription>Welcome to BikeRequest! Let&apos;s get you onboarded.</CardDescription>
+    <Card className="border-border bg-card shadow-lg">
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+        <div className="space-y-1.5">
+          <CardTitle className="text-2xl font-bold text-foreground">Complete your account setup</CardTitle>
+          <CardDescription>Welcome to BikeRequest! Let&apos;s get you onboarded.</CardDescription>
+        </div>
+        <ModeToggle />
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           <div className="space-y-3">
-            <Label className="text-base font-medium">Account Type</Label>
+            <Label className="text-base font-medium text-foreground">Account Type</Label>
             <RadioGroup
               defaultValue="buyer"
               value={accountType}
@@ -144,15 +141,17 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                   htmlFor="buyer"
                   className={cn(
                     "flex flex-col items-center justify-center rounded-lg border-2 p-6 transition-all duration-200 cursor-pointer",
-                    "hover:border-gray-300 hover:bg-gray-50",
+                    "hover:border-muted-foreground/30 hover:bg-accent",
                     accountType === "buyer"
-                      ? "border-blue-500 bg-blue-50 text-blue-700 font-medium shadow-sm"
-                      : "border-gray-200 bg-white",
+                      ? "border-primary bg-primary/10 text-primary font-medium shadow-sm"
+                      : "border-border bg-background text-foreground",
                   )}
                 >
                   <Users className="w-8 h-8 mb-2" />
                   <span className="text-lg font-medium">Buyer</span>
-                  <span className="text-sm text-gray-500 text-center mt-1">Join a company to request bikes</span>
+                  <span className="text-sm text-muted-foreground text-center mt-1">
+                    Join a company to request bikes
+                  </span>
                 </Label>
               </div>
               <div>
@@ -161,15 +160,17 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                   htmlFor="seller"
                   className={cn(
                     "flex flex-col items-center justify-center rounded-lg border-2 p-6 transition-all duration-200 cursor-pointer",
-                    "hover:border-gray-300 hover:bg-gray-50",
+                    "hover:border-muted-foreground/30 hover:bg-accent",
                     accountType === "seller"
-                      ? "border-blue-500 bg-blue-50 text-blue-700 font-medium shadow-sm"
-                      : "border-gray-200 bg-white",
+                      ? "border-primary bg-primary/10 text-primary font-medium shadow-sm"
+                      : "border-border bg-background text-foreground",
                   )}
                 >
                   <Building2 className="w-8 h-8 mb-2" />
                   <span className="text-lg font-medium">Seller</span>
-                  <span className="text-sm text-gray-500 text-center mt-1">Create a company to manage bikes</span>
+                  <span className="text-sm text-muted-foreground text-center mt-1">
+                    Create a company to manage bikes
+                  </span>
                 </Label>
               </div>
             </RadioGroup>
@@ -181,7 +182,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
             <Form {...buyerForm}>
               <form onSubmit={buyerForm.handleSubmit(handleBuyerSubmit)} className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Personal Information</h3>
+                  <h3 className="text-lg font-medium mb-4 text-foreground">Personal Information</h3>
                   <div className="space-y-4">
                     <FormField
                       control={buyerForm.control}
@@ -190,7 +191,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled className="bg-gray-100" />
+                            <Input {...field} disabled className="bg-muted text-muted-foreground" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -204,7 +205,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} disabled className="bg-gray-100" />
+                          <Input {...field} disabled className="bg-muted text-muted-foreground" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -213,7 +214,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Company Access</h3>
+                  <h3 className="text-lg font-medium mb-4 text-foreground">Company Access</h3>
                   <FormField
                     control={buyerForm.control}
                     name="invitationCode"
@@ -250,7 +251,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
             <Form {...sellerForm}>
               <form onSubmit={sellerForm.handleSubmit(handleSellerSubmit)} className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Personal Information</h3>
+                  <h3 className="text-lg font-medium mb-4 text-foreground">Personal Information</h3>
                   <div className="space-y-4">
                     <FormField
                       control={sellerForm.control}
@@ -259,7 +260,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                         <FormItem>
                           <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled className="bg-gray-100" />
+                            <Input {...field} disabled className="bg-muted text-muted-foreground" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -273,7 +274,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} disabled className="bg-gray-100" />
+                          <Input {...field} disabled className="bg-muted text-muted-foreground" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -284,7 +285,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                 <Separator />
 
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Company Information</h3>
+                  <h3 className="text-lg font-medium mb-4 text-foreground">Company Information</h3>
                   <div className="space-y-4">
                     <FormField
                       control={sellerForm.control}
@@ -308,7 +309,7 @@ const handleSellerSubmit = async (data: SellerFormValues) => {
                           <FormLabel>Company Website (optional)</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Globe className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                              <Globe className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                               <Input {...field} placeholder="https://yourcompany.com" className="pl-10" />
                             </div>
                           </FormControl>

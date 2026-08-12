@@ -79,29 +79,35 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
-    // ── Memory strategy: load all messages then apply windowing ────────────
-    const allMessages = await prisma.message.findMany({
-      where: { conversationId },
-      orderBy: { createdAt: 'asc' },
-    })
-
-    // ── Persist the incoming user message ──────────────────────────────────
-    await prisma.message.create({
-      data: { content, conversationId, Role: $Enums.MessageRole.USER },
-    })
-
-    // ── Arcjet rate-limit / shield ─────────────────────────────────────────
+    // ── Arcjet rate-limit / shield ──────────────────────────────────────────
+    // Moved above message persistence: previously the user's message was
+    // saved to the DB before this check ran, so every rate-limited retry
+    // left an orphaned USER message with no AI reply ever following it.
+    // Both denial reasons are now handled inside one isDenied() branch so
+    // shield actually blocks the request once it's flipped out of DRY_RUN
+    // (previously the shield check lived outside isDenied(), which only
+    // worked by accident while DRY_RUN never denies anything).
     const decision = await aj.protect(req, { requested: 1 })
 
     if (decision.isDenied()) {
       if (decision.reason.isRateLimit()) {
         return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { status: 429 })
       }
+      if (decision.reason.isShield()) {
+        return NextResponse.json({ error: 'Request blocked by security rules.' }, { status: 403 })
+      }
     }
 
-    if (decision.reason.isShield()) {
-      return NextResponse.json({ error: 'Request blocked by security rules.' }, { status: 403 })
-    }
+    // ── Persist the incoming user message ──────────────────────────────────
+    await prisma.message.create({
+      data: { content, conversationId, Role: $Enums.MessageRole.USER },
+    })
+
+    // ── Memory strategy: load all messages then apply windowing ────────────
+    const allMessages = await prisma.message.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+    })
 
     // ── Build context-compressed prompt ───────────────────────────────────
     const { systemSummary, recentMessages } = await buildMessageContext(allMessages)
@@ -142,6 +148,14 @@ export const POST = async (req: NextRequest) => {
           } catch {
             parsedArgs = {}
           }
+          // NOTE (not fixed here - need executeToolCall/AI_TOOLS to confirm):
+          // this passes sessionUser.id, which is the Clerk ID, not the DB
+          // user.id or companyId already resolved above as `user`. If any
+          // tool inside executeToolCall scopes data by company (the same
+          // buyer/seller-company scoping pattern that was the root cause of
+          // the MCP bug earlier in this conversation), it needs to receive
+          // `user.id` / `user.companyId`, not the raw Clerk id. Re-check
+          // executeToolCall's signature and what it does with this value.
           const result = await executeToolCall(tc.function.name, parsedArgs, sessionUser.id)
           return {
             role: 'tool' as const,
