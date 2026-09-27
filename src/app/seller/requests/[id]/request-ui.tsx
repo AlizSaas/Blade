@@ -164,8 +164,8 @@ export default function BikeRequestDetailPage({ request }: BikeRequestDetailPage
                   <label className="text-sm font-medium text-muted-foreground">Reason for Request</label>
                   <p className="mt-1 leading-relaxed text-foreground">{request.reason}</p>
                   <br />
-                  <label className="mt-2 text-sm font-medium text-muted-foreground">Additional Notes from seller</label>
-                  <p className="mt-1 leading-relaxed text-foreground">{request.notes}</p>
+                  <label className="mt-2 text-sm font-medium text-muted-foreground">Additional Notes from Seller</label>
+                  <p className="mt-1 leading-relaxed text-foreground">{request.notes || "No seller message yet."}</p>
                   
                 </div>
                 <Separator />

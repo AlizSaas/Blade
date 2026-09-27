@@ -17,7 +17,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle, XCircle, User, Bike, Calendar, MessageSquare, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
-import updateRequestBikeStatus from "@/lib/actions/seller"
+import kyInstance from "@/lib/ky"
 import type {  IndividualBikeRequest, } from "@/lib/types"
 import Image from "next/image"
 
@@ -41,11 +41,14 @@ export default function RequestActionModal({ request, actionType, isOpen, onClos
 
     startTransition(async () => {
       try {
-        const result = await updateRequestBikeStatus({
-          requestId: request?.id,
-          status: actionType === "approve" ? "APPROVED" : "REJECTED",
-          notes: reason.trim(), // This will be sent to the buyer
-        })
+        const result = await kyInstance
+          .patch(`/api/saller/request/${request.id}`, {
+            json: {
+              status: actionType === "approve" ? "APPROVED" : "REJECTED",
+              notes: reason.trim(),
+            },
+          })
+          .json<{ success?: boolean; message?: string; error?: string }>()
 
         if (result.error) {
           toast.error(result.error)

@@ -4,7 +4,6 @@ import type React from "react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,21 +18,9 @@ import { Bike, Upload, X, ImageIcon, Loader2, ArrowLeft, Send, AlertCircle, Chec
 import { toast } from "sonner"
 import useMediaUpload from "@/hooks/index"
 import { createBikeRequest } from "@/lib/actions/buyer"
+import { bikeRequestSchema, type BikeRequestFormValues } from "@/lib/validation"
 import Link from "next/link"
 import Image from "next/image"
-
-// Form validation schema
-const bikeRequestSchema = z.object({
-  sellerId: z.string().min(1, "Please select a seller"),
-  bikeModel: z.string().min(1, "Bike model is required").max(100, "Bike model must be less than 100 characters"),
-  reason: z
-    .string()
-    .min(10, "Please provide a detailed reason (at least 10 characters)")
-    .max(500, "Reason must be less than 500 characters"),
-  url: z.string().optional(), // Optional for image URL
-})
-
-type BikeRequestFormValues = z.infer<typeof bikeRequestSchema>
 
 export default function NewRequestPage({ sellers }: { sellers: { id: string; name: string; email: string; company: string }[] }) {
   const router = useRouter()

@@ -58,9 +58,11 @@ export type BikeRequestResponse = {
             firstname: string;
             lastname: string | null;
             email: string;
-            companyId: string;
-            companyName: string;
-
+            company: {
+                name: string;
+                logo: string | null;
+                website: string | null;
+            } | null;
         };
         status: $Enums.BikeStatus;
         id: string;
@@ -166,5 +168,13 @@ export type BikeRequestWithRelations = {
     image: string | null
     role: UserRole
     companyId: string
+    company?: {
+      name: string
+      id: string
+      logo: string | null
+      website: string | null
+      createdAt: Date
+      updatedAt: Date
+    }
   }
 }

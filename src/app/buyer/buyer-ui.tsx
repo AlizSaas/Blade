@@ -249,7 +249,12 @@ export default function BuyerDashboard() {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-muted-foreground" />
-                            <div className="font-medium">{request.seller.firstname}</div>
+                            <div>
+                              <div className="font-medium">{request.seller.firstname}</div>
+                              {request.seller.company?.name && (
+                                <div className="text-xs text-muted-foreground">{request.seller.company.name}</div>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                   <TableCell>
@@ -267,8 +272,8 @@ export default function BuyerDashboard() {
                         <TableCell>{getStatusBadge(request.status)}</TableCell>
                         <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{getStatusDescription(request.status)}</TableCell>
-                        <TableCell>
-                          {request.notes?.slice(0,25) + "..."}
+                        <TableCell className="text-sm text-muted-foreground">
+                          {request.notes ? `${request.notes.slice(0, 25)}${request.notes.length > 25 ? "..." : ""}` : "No seller message yet"}
                         </TableCell>
                         
                       </TableRow>

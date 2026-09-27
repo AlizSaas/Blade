@@ -29,7 +29,11 @@ const getBikeRequest = cache(async (id: string, userId: string) => {
             
           },
         },
-        seller: true,
+        seller: {
+          include: {
+            company: true,
+          },
+        },
       },
     });
 

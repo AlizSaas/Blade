@@ -2,6 +2,7 @@
 
 import { validateAuthRequest } from "../auth";
 import { prisma } from "../prisma";
+import { bikeRequestSchema } from "../validation";
 
 interface CreateBikeRequestData {
   sellerId: string; // This should be the database ID, not clerkId
@@ -13,27 +14,35 @@ interface CreateBikeRequestData {
 export async function createBikeRequest(data: CreateBikeRequestData) {
   try {
     const user = await validateAuthRequest();
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
+    const parsedData = bikeRequestSchema.parse(data)
 
     // Get the authenticated user from database
     const dbUser = await prisma.user.findUnique({
       where: { clerkId: user.id },
+      select: {
+        id: true,
+        role: true,
+        companyId: true,
+      },
     });
 
     if (!dbUser) {
       throw new Error("User not found in database");
     }
 
+    if (dbUser.role !== "BUYER") {
+      throw new Error("Only buyers can submit bike requests");
+    }
+
     // Validate that the seller exists and is actually a seller
     const seller = await prisma.user.findUnique({
       where: { 
-        id: data.sellerId, // Use database ID, not clerkId
+        id: parsedData.sellerId,
       },
       select: {
         id: true,
         role: true,
+        companyId: true,
       },
     });
 
@@ -45,14 +54,18 @@ export async function createBikeRequest(data: CreateBikeRequestData) {
       throw new Error("Selected user is not a seller");
     }
 
+    if (seller.companyId !== dbUser.companyId) {
+      throw new Error("You can only submit requests to sellers in your company");
+    }
+
     // Create the bike request
     const bikeRequest = await prisma.bikeRequest.create({
       data: {
-        bikeModel: data.bikeModel,
-        reason: data.reason,
-        url: data.url,
+        bikeModel: parsedData.bikeModel,
+        reason: parsedData.reason,
+        url: parsedData.url || "",
         buyerId: dbUser.id,
-        sellerId: data.sellerId, // This is now the correct database ID
+        sellerId: parsedData.sellerId,
       },
     });
 

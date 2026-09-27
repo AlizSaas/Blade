@@ -1,59 +1,55 @@
-import {prisma} from '@/lib/prisma'
-import {validateAuthRequest} from '@/lib/auth'
-import { NextRequest } from 'next/server';
-import { UsersResponse } from '@/lib/types';
+import { NextRequest, NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 
-export async function GET(req:NextRequest) {
+import { validateAuthRequest } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { paginationSchema } from '@/lib/validation'
 
-     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
-
-          const pageSize = 3
-
-        const loggedInUser = await validateAuthRequest()
-        
-       
-   
-
-        if( !loggedInUser ) {
-          return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        const user = await prisma.user.findUnique({
-            where:{
-                clerkId: loggedInUser.id,
-            },
-            select:{
-                companyId:true,
-             
-            }
-        })
-
-        if(!user || !user.companyId) {
-            return Response.json({ error: "Forbidden" }, { status: 403 });
-        }
-    const users = await prisma.user.findMany({
-        where:{
-            companyId:user.companyId,
-            role:'BUYER', // Only fetch buyers
-        },
-        orderBy:{
-            firstname: 'asc' // Sort by first name in ascending order
-        },
-        take:pageSize + 1,
-        cursor: cursor ? {id: cursor} : undefined,
+export async function GET(req: NextRequest) {
+  try {
+    const { cursor } = paginationSchema.parse({
+      cursor: req.nextUrl.searchParams.get('cursor') || undefined,
     })
-if(!users) {
-    return Response.json({ error: "Not Found" }, { status: 404 });
-}
 
-const nextCursor = users.length > pageSize ? users[pageSize].id : null;
-const data:UsersResponse = {
-    users: users.slice(0, pageSize),
-    nextCursor,
-}
+    const loggedInUser = await validateAuthRequest()
+    const pageSize = 3
 
-return Response.json(data, { status: 200 });
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: loggedInUser.id },
+      select: { companyId: true, role: true },
+    })
 
+    if (!dbUser?.companyId || dbUser.role !== 'SELLER') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
+    const users = await prisma.user.findMany({
+      where: {
+        companyId: dbUser.companyId,
+        role: 'BUYER',
+      },
+      orderBy: {
+        firstname: 'asc',
+      },
+      take: pageSize + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+    })
 
+    const nextCursor = users.length > pageSize ? users[pageSize].id : null
 
+    return NextResponse.json(
+      {
+        users: users.slice(0, pageSize),
+        nextCursor,
+      },
+      { status: 200 },
+    )
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: error.issues[0]?.message ?? 'Invalid request' }, { status: 400 })
+    }
+
+    console.error(error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
 }
