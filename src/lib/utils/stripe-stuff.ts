@@ -2,7 +2,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 
 import { validateAuthRequest } from '@/lib/auth'
 
@@ -29,7 +29,7 @@ if(!dbUser || !dbUser.company) {
     throw new Error('Unauthorized')
   }
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     payment_method_types: ['card'],
     mode: 'subscription',
     line_items: [

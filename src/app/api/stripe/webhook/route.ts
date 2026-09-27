@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { getResend } from '@/lib/resend';
 import { z } from 'zod';
@@ -25,7 +25,7 @@ const signature = req.headers.get('stripe-signature');
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       webhookSecret
