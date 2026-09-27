@@ -1,5 +1,5 @@
 import type { Message } from '@/generated/prisma'
-import openai from '@/lib/open-ai'
+import { getOpenAI } from '@/lib/open-ai'
 
 /** Keep this many recent messages verbatim in every request. */
 const RECENT_WINDOW = 10
@@ -50,7 +50,7 @@ async function summariseMessages(messages: Message[]): Promise<string> {
     .map((m) => `${m.Role === 'USER' ? 'User' : 'Assistant'}: ${m.content}`)
     .join('\n')
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {

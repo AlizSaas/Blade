@@ -1,7 +1,13 @@
 import OpenAI from 'openai'
 
- const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-})
+export function getOpenAI() {
+ const apiKey = process.env.OPENAI_API_KEY
 
-export default openai
+ if (!apiKey) {
+   throw new Error('OPENAI_API_KEY is not configured')
+ }
+
+ return new OpenAI({
+   apiKey,
+ })
+}

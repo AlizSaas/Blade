@@ -2,7 +2,7 @@
 
 import { prisma } from "../prisma"
 import { validateAuthRequest } from "../auth"
-import openai from "@/lib/open-ai"
+import { getOpenAI } from "@/lib/open-ai"
 
 import { $Enums } from "@/generated/prisma"
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs"
@@ -153,7 +153,7 @@ You are always honest, concise, and focused on helping the seller succeed.
     },
   ]
 
-  const chatResponse = await openai.chat.completions.create({
+  const chatResponse = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
     messages: promptMessages as ChatCompletionMessageParam[],
   })
