@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
-import { resend } from '@/lib/resend';
+import { getResend } from '@/lib/resend';
 import { z } from 'zod';
 
 const checkoutSessionSchema = z.object({
@@ -64,7 +64,7 @@ const signature = req.headers.get('stripe-signature');
     })
 
     if (session.customer_email) {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: 'YourApp <no-reply@alizmail.com>',
         to: session.customer_email,
         subject: '🎉 Subscription Confirmed!',
