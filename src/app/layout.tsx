@@ -18,8 +18,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <ClerkProvider> 
+  const app = (
     <html lang="en" suppressHydrationWarning>
       <head>
         <script
@@ -54,6 +53,13 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-    </ClerkProvider>
   );
+
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
+  if (!clerkPublishableKey) {
+    return app
+  }
+
+  return <ClerkProvider publishableKey={clerkPublishableKey}>{app}</ClerkProvider>
 }
