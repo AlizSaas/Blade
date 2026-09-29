@@ -136,8 +136,8 @@ export default function BikeRequestSingle({request}: BikeRequestDetailPageProps)
                   <label className="text-sm font-medium text-muted-foreground">Reason for Request</label>
                   <p className="text-foreground mt-1 leading-relaxed">{request.reason}</p>
                   <br />
-                  <label className="text-sm font-medium text-muted-foreground mt-2">Additional Notes from seller</label>
-                  <p className="text-foreground mt-1 leading-relaxed">{request.notes}</p>
+                  <label className="text-sm font-medium text-muted-foreground mt-2">Additional Notes from Seller</label>
+                  <p className="text-foreground mt-1 leading-relaxed">{request.notes || "No seller message yet."}</p>
                   
                 </div>
                 <Separator />
@@ -205,23 +205,23 @@ export default function BikeRequestSingle({request}: BikeRequestDetailPageProps)
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  Buyer Information
+                  Seller Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={request.buyer.image || undefined} />
+                    <AvatarImage src={request.seller.image || undefined} />
                     <AvatarFallback className="bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
-                      {request.buyer.firstname.charAt(0)}
-                      {request.buyer.lastname?.charAt(0) || ""}
+                      {request.seller.firstname.charAt(0)}
+                      {request.seller.lastname?.charAt(0) || ""}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-semibold text-foreground">
-                      {request.buyer.firstname} {request.buyer.lastname}
+                      {request.seller.firstname} {request.seller.lastname}
                     </p>
-                    <p className="text-sm text-muted-foreground capitalize">{request.buyer.role.toLowerCase()}</p>
+                    <p className="text-sm text-muted-foreground capitalize">{request.seller.role.toLowerCase()}</p>
                   </div>
                 </div>
                 <Separator />
@@ -229,20 +229,20 @@ export default function BikeRequestSingle({request}: BikeRequestDetailPageProps)
                   <div className="flex items-center gap-2 text-sm">
                     <Mail className="w-4 h-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Email:</span>
-                    <a href={`mailto:${request.buyer.email}`} className="text-blue-600 dark:text-blue-400 hover:underline">
-                      {request.buyer.email}
+                    <a href={`mailto:${request.seller.email}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+                      {request.seller.email}
                     </a>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Building2 className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Company: {request.buyer.company.name}</span>
+                    <span className="text-muted-foreground">Company: {request.seller.company?.name || "Unknown company"}</span>
              
                     
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Member since:</span>
-                    <span className="text-foreground">{new Date(request.buyer.createdAt).toLocaleDateString()}</span>
+                    <span className="text-foreground">{new Date(request.seller.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </CardContent>

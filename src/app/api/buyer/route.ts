@@ -1,55 +1,71 @@
-import {prisma} from '@/lib/prisma'
-import {validateAuthRequest} from '@/lib/auth'
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 
+import { validateAuthRequest } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { paginationSchema } from '@/lib/validation'
 
-export async function GET(req:NextRequest) {
-     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
+export async function GET(req: NextRequest) {
+  try {
+    const { cursor } = paginationSchema.parse({
+      cursor: req.nextUrl.searchParams.get('cursor') || undefined,
+    })
 
-          const pageSize = 4
+    const loggedInUser = await validateAuthRequest()
+    const pageSize = 4
 
-        const loggedInUser = await validateAuthRequest()
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: loggedInUser.id },
+      select: { id: true, role: true },
+    })
 
-          if( !loggedInUser ) {
-          return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        const bikeRequestData = await prisma.bikeRequest.findMany({
-            where:{
-                buyer:{
-                    clerkId: loggedInUser.id,
-                }
+    if (!dbUser || dbUser.role !== 'BUYER') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const bikeRequests = await prisma.bikeRequest.findMany({
+      where: {
+        buyerId: dbUser.id,
+      },
+      include: {
+        buyer: true,
+        seller: {
+          select: {
+            firstname: true,
+            lastname: true,
+            email: true,
+            company: {
+              select: {
+                name: true,
+                logo: true,
+                website: true,
+              },
             },
-            include:{
-                buyer:true,
-                seller:{
-                    select:{
-                        firstname: true,
-                        lastname: true,
-                        email: true,
-                    }
-                }
-                
-            },
-            orderBy:{
-                createdAt: 'desc' // Sort by createdAt in descending order
-            },
-            take: pageSize + 1,
-            cursor: cursor ? {id: cursor} : undefined,
-        })
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: pageSize + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+    })
 
-        if(!bikeRequestData) {
-            return Response.json({ error: "Not Found" }, { status: 404 });
-        }
+    const nextCursor = bikeRequests.length > pageSize ? bikeRequests[pageSize].id : null
 
-     
+    return NextResponse.json(
+      {
+        bikeRequests: bikeRequests.slice(0, pageSize),
+        nextCursor,
+      },
+      { status: 200 },
+    )
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: error.issues[0]?.message ?? 'Invalid request' }, { status: 400 })
+    }
 
-        const nextCursor = bikeRequestData.length > pageSize ? bikeRequestData[pageSize].id : null;
-
-        const data= {
-            bikeRequests: bikeRequestData.slice(0,pageSize),
-            nextCursor,
-        }
-        
-        return Response.json(data, { status: 200 });
-    
+    console.error(error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
 }

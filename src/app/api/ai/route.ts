@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { validateAuthRequest } from '@/lib/auth'
-import openai from '@/lib/open-ai'
+import { getOpenAI } from '@/lib/open-ai'
 import { $Enums } from '@/generated/prisma'
 import arcjet, { shield, tokenBucket } from '@arcjet/next'
 import type { ChatCompletionMessageParam, ChatCompletionMessageToolCall } from 'openai/resources/index.mjs'
@@ -120,6 +120,8 @@ export const POST = async (req: NextRequest) => {
     )
 
     // ── Phase 1: resolve tool calls (non-streaming) ────────────────────────
+    const openai = getOpenAI()
+
     const toolResponse = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: promptMessages,
