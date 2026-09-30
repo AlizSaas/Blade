@@ -10,6 +10,7 @@ import kyInstance from "@/lib/ky"
 import type { BikeRequestResponse, IndividualBikeRequest } from "@/lib/types"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import InfiniteScrollContainer from "@/components/infinite-scroll-container"
+import InvitationCodesModal from "@/components/invitation-codes-model"
 import RequestActionModal from "@/components/request-action-modal"
 import { useState } from "react"
 import Link from "next/link"
@@ -133,6 +134,13 @@ export default function SellerDashboard() {
                 VIEW ALL CUSTOMERS <ArrowRight className="w-4 h-4 mr-2" />
               </Button>
             </Link>
+            {/*
+              Rendered inside the client dashboard (same pattern as the
+              customers page) so the dialog isn't blocked by the async
+              server page's Stripe/conversation awaits and shares the
+              page's react-query provider cleanly.
+            */}
+            <InvitationCodesModal />
           </div>
           </div>
           <Link href='/seller/ai'>
