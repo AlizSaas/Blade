@@ -18,48 +18,42 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const app = (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('theme');
-                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-      </head>
-      <body
-        className="antialiased"
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+  return (
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  try {
+                    var theme = localStorage.getItem('theme');
+                    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                      document.documentElement.classList.add('dark');
+                    } else {
+                      document.documentElement.classList.remove('dark');
+                    }
+                  } catch (e) {}
+                })();
+              `,
+            }}
+          />
+        </head>
+        <body
+          className="antialiased"
         >
-          <NextSSRPlugin routerConfig={extractRouterConfig(fileRouter)} />
-          <ReactQueryProvider > {children} </ReactQueryProvider>
-          <Toaster/>
-        </ThemeProvider>
-      </body>
-    </html>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <NextSSRPlugin routerConfig={extractRouterConfig(fileRouter)} />
+            <ReactQueryProvider > {children} </ReactQueryProvider>
+            <Toaster/>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
-
-  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-
-  if (!clerkPublishableKey) {
-    return app
-  }
-
-  return <ClerkProvider publishableKey={clerkPublishableKey}>{app}</ClerkProvider>
 }
