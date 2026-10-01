@@ -8,6 +8,10 @@ export const requestIdSchema = z.object({
   id: z.string().uuid('Invalid request id'),
 })
 
+export const customerIdSchema = z.object({
+  id: z.string().uuid('Invalid customer id'),
+})
+
 export const buyerSchema = z.object({
   firstName: z.string().trim().min(1, 'First name is required').max(55),
   email: z.string().trim().email('Invalid email address').max(100),
