@@ -14,21 +14,18 @@ const aj = arcjet({
   key: process.env.ARCJET_KEY!,
   characteristics: ['ip.src'],
   rules: [
-    tokenBucket({
-      mode: 'LIVE',
-      refillRate: 100,
-      interval: '1h',
-      capacity: 500,
-    }),
-    shield({
-      mode: 'DRY_RUN',
-    }),
+    tokenBucket({ mode: 'LIVE', refillRate: 100, interval: '1h', capacity: 500 }),
+    shield({ mode: 'DRY_RUN' }),
   ],
 })
 
 const messageSchema = z.object({
-  conversationId: z.string().min(1),
-  content: z.string().min(1, 'Message content cannot be empty'),
+  conversationId: z.string().uuid(),
+  content: z.string().trim().min(1, 'Message content cannot be empty').max(2000, 'Message is too long'),
+})
+
+const clearConversationSchema = z.object({
+  conversationId: z.string().uuid(),
 })
 
 /** Fallback used when the AI returns an empty response. Must match the UI fallback. */
@@ -45,10 +42,54 @@ function sseError(message: string): string {
   return `data: ${JSON.stringify({ t: 'error', e: message })}\n\n`
 }
 
+function sseResponse(stream: ReadableStream): Response {
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
+}
+
+function saveAiMessage(conversationId: string, content: string) {
+  return prisma.message.create({
+    data: { content, conversationId, Role: $Enums.MessageRole.AI },
+  })
+}
+
+/** Sends a complete text answer as SSE and saves it. */
+function streamFixedText(conversationId: string, text: string): Response {
+  const encoder = new TextEncoder()
+
+  return sseResponse(
+    new ReadableStream({
+      async start(controller) {
+        try {
+          controller.enqueue(encoder.encode(sseChunk(text)))
+          const aiMessage = await saveAiMessage(conversationId, text)
+          controller.enqueue(encoder.encode(sseDone(aiMessage.id, aiMessage.createdAt.toISOString())))
+        } catch (err) {
+          controller.enqueue(encoder.encode(sseError(err instanceof Error ? err.message : 'Streaming error')))
+        } finally {
+          controller.close()
+        }
+      },
+    }),
+  )
+}
+
+function errorResponse(err: unknown): NextResponse {
+  if (err instanceof z.ZodError) {
+    return NextResponse.json({ error: err.issues[0]?.message ?? 'Invalid request' }, { status: 400 })
+  }
+  console.error(err)
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+}
+
 export const POST = async (req: NextRequest) => {
   try {
-    const body = await req.json()
-    const { conversationId, content } = messageSchema.parse(body)
+    const { conversationId, content } = messageSchema.parse(await req.json())
 
     // ── Auth ────────────────────────────────────────────────────────────────
     const sessionUser = await validateAuthRequest()
@@ -69,7 +110,7 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Upgrade your plan to use the AI chatbot' }, { status: 403 })
     }
 
-    // ── Load conversation + company ────────────────────────────────────────
+    // ── Load conversation + ownership check ────────────────────────────────
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
       include: { company: true },
@@ -79,38 +120,43 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
-    // ── Arcjet rate-limit / shield ──────────────────────────────────────────
-    // Moved above message persistence: previously the user's message was
-    // saved to the DB before this check ran, so every rate-limited retry
-    // left an orphaned USER message with no AI reply ever following it.
-    // Both denial reasons are now handled inside one isDenied() branch so
-    // shield actually blocks the request once it's flipped out of DRY_RUN
-    // (previously the shield check lived outside isDenied(), which only
-    // worked by accident while DRY_RUN never denies anything).
+    if (conversation.sellerId !== user.id || conversation.companyId !== user.companyId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // ── Arcjet (before saving anything, so blocked requests leave no orphan messages)
     const decision = await aj.protect(req, { requested: 1 })
 
     if (decision.isDenied()) {
       if (decision.reason.isRateLimit()) {
         return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { status: 429 })
       }
-      if (decision.reason.isShield()) {
-        return NextResponse.json({ error: 'Request blocked by security rules.' }, { status: 403 })
-      }
+      return NextResponse.json({ error: 'Request blocked by security rules.' }, { status: 403 })
     }
 
-    // ── Persist the incoming user message ──────────────────────────────────
-    await prisma.message.create({
+    // ── Save the user's message ────────────────────────────────────────────
+    const userMessage = await prisma.message.create({
       data: { content, conversationId, Role: $Enums.MessageRole.USER },
     })
 
-    // ── Memory strategy: load all messages then apply windowing ────────────
+    // ── History WITHOUT the new message (buildPromptMessages adds it itself) ─
     const allMessages = await prisma.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
     })
+    const history = allMessages.filter((m) => m.id !== userMessage.id)
 
-    // ── Build context-compressed prompt ───────────────────────────────────
-    const { systemSummary, recentMessages } = await buildMessageContext(allMessages)
+    const { systemSummary, recentMessages, summaryUpdate } = await buildMessageContext(history, {
+      summary: conversation.summary,
+      summarizedCount: conversation.summarizedCount,
+    })
+
+    if (summaryUpdate) {
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: summaryUpdate,
+      })
+    }
 
     const promptMessages = buildPromptMessages(
       conversation.company.name,
@@ -119,7 +165,7 @@ export const POST = async (req: NextRequest) => {
       content,
     )
 
-    // ── Phase 1: resolve tool calls (non-streaming) ────────────────────────
+    // ── Phase 1: let the model decide whether it needs tools ───────────────
     const openai = getOpenAI()
 
     const toolResponse = await openai.chat.completions.create({
@@ -130,147 +176,81 @@ export const POST = async (req: NextRequest) => {
     })
 
     const assistantMsg = toolResponse.choices[0].message
+    const toolCalls = assistantMsg.tool_calls ?? []
 
-    // Build the updated message list that includes the assistant turn + tool results
+    // No tools needed: send the answer directly (or the fallback if it was empty).
+    if (toolCalls.length === 0) {
+      return streamFixedText(conversationId, assistantMsg.content?.trim() || AI_FALLBACK_MESSAGE)
+    }
+
+    // ── Run the tools ──────────────────────────────────────────────────────
+    const toolResults = await Promise.all(
+      toolCalls.map(async (tc: ChatCompletionMessageToolCall) => {
+        let parsedArgs: Record<string, unknown> = {}
+        try {
+          parsedArgs = JSON.parse(tc.function.arguments) as Record<string, unknown>
+        } catch {
+          // bad JSON from the model: run the tool with no arguments
+        }
+
+        let result: string
+        try {
+          result = await executeToolCall(tc.function.name, parsedArgs, user.id)
+        } catch (err) {
+          console.error(`Tool ${tc.function.name} failed`, err)
+          result = JSON.stringify({ error: 'Tool failed. Data is unavailable.' })
+        }
+
+        return { role: 'tool' as const, tool_call_id: tc.id, content: result }
+      }),
+    )
+
     const messagesForFinalCall: ChatCompletionMessageParam[] = [
       ...promptMessages,
-      {
-        role: 'assistant',
-        content: assistantMsg.content,
-        tool_calls: assistantMsg.tool_calls,
-      },
+      { role: 'assistant', content: assistantMsg.content, tool_calls: toolCalls },
+      ...toolResults,
     ]
 
-    if (assistantMsg.tool_calls?.length) {
-      const toolResults = await Promise.all(
-        assistantMsg.tool_calls.map(async (tc: ChatCompletionMessageToolCall) => {
-          let parsedArgs: Record<string, unknown>
-          try {
-            parsedArgs = JSON.parse(tc.function.arguments) as Record<string, unknown>
-          } catch {
-            parsedArgs = {}
-          }
-          // NOTE (not fixed here - need executeToolCall/AI_TOOLS to confirm):
-          // this passes sessionUser.id, which is the Clerk ID, not the DB
-          // user.id or companyId already resolved above as `user`. If any
-          // tool inside executeToolCall scopes data by company (the same
-          // buyer/seller-company scoping pattern that was the root cause of
-          // the MCP bug earlier in this conversation), it needs to receive
-          // `user.id` / `user.companyId`, not the raw Clerk id. Re-check
-          // executeToolCall's signature and what it does with this value.
-          const result = await executeToolCall(tc.function.name, parsedArgs, sessionUser.id)
-          return {
-            role: 'tool' as const,
-            tool_call_id: tc.id,
-            content: result,
-          }
-        }),
-      )
-      messagesForFinalCall.push(...toolResults)
-    }
-
-    const encoder = new TextEncoder()
-
-    // If Phase 1 already produced a text response (no tools were called),
-    // stream the content directly without a second roundtrip.
-    if (!assistantMsg.tool_calls?.length && assistantMsg.content) {
-      const directContent = assistantMsg.content
-
-      const readable = new ReadableStream({
-        async start(controller) {
-          try {
-            controller.enqueue(encoder.encode(sseChunk(directContent)))
-
-            const aiMessage = await prisma.message.create({
-              data: {
-                content: directContent,
-                conversationId,
-                Role: $Enums.MessageRole.AI,
-              },
-            })
-
-            controller.enqueue(
-              encoder.encode(sseDone(aiMessage.id, aiMessage.createdAt.toISOString())),
-            )
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : 'Streaming error'
-            controller.enqueue(encoder.encode(sseError(msg)))
-          } finally {
-            controller.close()
-          }
-        },
-      })
-
-      return new Response(readable, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          Connection: 'keep-alive',
-        },
-      })
-    }
-
-    // ── Phase 2: stream the synthesised final response ─────────────────────
+    // ── Phase 2: stream the final answer ───────────────────────────────────
     const finalStream = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: messagesForFinalCall,
       stream: true,
     })
 
-    const readable = new ReadableStream({
-      async start(controller) {
-        let fullContent = ''
-        try {
-          for await (const chunk of finalStream) {
-            const text = chunk.choices[0]?.delta?.content ?? ''
-            if (text) {
-              fullContent += text
-              controller.enqueue(encoder.encode(sseChunk(text)))
+    const encoder = new TextEncoder()
+
+    return sseResponse(
+      new ReadableStream({
+        async start(controller) {
+          let fullContent = ''
+          try {
+            for await (const chunk of finalStream) {
+              const text = chunk.choices[0]?.delta?.content ?? ''
+              if (text) {
+                fullContent += text
+                controller.enqueue(encoder.encode(sseChunk(text)))
+              }
             }
+
+            const aiMessage = await saveAiMessage(conversationId, fullContent || AI_FALLBACK_MESSAGE)
+            controller.enqueue(encoder.encode(sseDone(aiMessage.id, aiMessage.createdAt.toISOString())))
+          } catch (err) {
+            controller.enqueue(encoder.encode(sseError(err instanceof Error ? err.message : 'Streaming error')))
+          } finally {
+            controller.close()
           }
-
-          const aiMessage = await prisma.message.create({
-            data: {
-              content: fullContent || AI_FALLBACK_MESSAGE,
-              conversationId,
-              Role: $Enums.MessageRole.AI,
-            },
-          })
-
-          controller.enqueue(
-            encoder.encode(sseDone(aiMessage.id, aiMessage.createdAt.toISOString())),
-          )
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Streaming error'
-          controller.enqueue(encoder.encode(sseError(msg)))
-        } finally {
-          controller.close()
-        }
-      },
-    })
-
-    return new Response(readable, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      },
-    })
+        },
+      }),
+    )
   } catch (err: unknown) {
-    console.error(err)
-    const errorMessage = err instanceof Error ? err.message : 'Internal Server Error'
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    return errorResponse(err)
   }
 }
 
-const clearConversationSchema = z.object({
-  conversationId: z.string().uuid(),
-})
-
 export const DELETE = async (req: NextRequest) => {
   try {
-    const body = await req.json()
-    const { conversationId } = clearConversationSchema.parse(body)
+    const { conversationId } = clearConversationSchema.parse(await req.json())
 
     const sessionUser = await validateAuthRequest()
     if (!sessionUser) {
@@ -290,12 +270,18 @@ export const DELETE = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await prisma.message.deleteMany({ where: { conversationId } })
+    // Delete messages AND reset the summary together, or the AI would
+    // keep remembering a conversation the seller cleared.
+    await prisma.$transaction([
+      prisma.message.deleteMany({ where: { conversationId } }),
+      prisma.conversation.update({
+        where: { id: conversationId },
+        data: { summary: null, summarizedCount: 0 },
+      }),
+    ])
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
-    console.error(err)
-    const errorMessage = err instanceof Error ? err.message : 'Internal Server Error'
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
+    return errorResponse(err)
   }
 }

@@ -1,7 +1,6 @@
 import type { ChatCompletionTool } from 'openai/resources/index.mjs'
 import { prisma } from '@/lib/prisma'
 
-/** Formats a buyer's full name, safely omitting a missing last name. */
 function formatCustomerName(firstname: string, lastname: string | null): string {
   return `${firstname} ${lastname ?? ''}`.trim()
 }
@@ -13,11 +12,7 @@ export const AI_TOOLS: ChatCompletionTool[] = [
       name: 'get_request_counts',
       description:
         'Returns the count of bike requests grouped by status (approved, rejected, pending, total) for the authenticated seller.',
-      parameters: {
-        type: 'object',
-        properties: {},
-        required: [],
-      },
+      parameters: { type: 'object', properties: {}, required: [] },
     },
   },
   {
@@ -39,31 +34,41 @@ export const AI_TOOLS: ChatCompletionTool[] = [
   },
 ]
 
+/** `sellerId` is the database User.id of the logged-in seller (not the Clerk id). */
 export async function executeToolCall(
   toolName: string,
   args: Record<string, unknown>,
-  sellerClerkId: string,
+  sellerId: string,
 ): Promise<string> {
   if (toolName === 'get_request_counts') {
-    const [approvedCount, rejectedCount, pendingCount] = await Promise.all([
-      prisma.bikeRequest.count({
-        where: { seller: { clerkId: sellerClerkId }, status: 'APPROVED' },
-      }),
-      prisma.bikeRequest.count({
-        where: { seller: { clerkId: sellerClerkId }, status: 'REJECTED' },
-      }),
-      prisma.bikeRequest.count({
-        where: { seller: { clerkId: sellerClerkId }, status: 'PENDING' },
-      }),
-    ])
-    const totalCount = approvedCount + rejectedCount + pendingCount
-    return JSON.stringify({ approvedCount, rejectedCount, pendingCount, totalCount })
+    // One query instead of three.
+    const grouped = await prisma.bikeRequest.groupBy({
+      by: ['status'],
+      where: { sellerId },
+      _count: { _all: true },
+    })
+
+    const countFor = (status: 'APPROVED' | 'REJECTED' | 'PENDING') =>
+      grouped.find((g) => g.status === status)?._count._all ?? 0
+
+    const approvedCount = countFor('APPROVED')
+    const rejectedCount = countFor('REJECTED')
+    const pendingCount = countFor('PENDING')
+
+    return JSON.stringify({
+      approvedCount,
+      rejectedCount,
+      pendingCount,
+      totalCount: approvedCount + rejectedCount + pendingCount,
+    })
   }
 
   if (toolName === 'get_latest_requests') {
-    const limit = Math.min(typeof args.limit === 'number' ? args.limit : 10, 20)
+    const requested = typeof args.limit === 'number' && Number.isFinite(args.limit) ? args.limit : 10
+    const limit = Math.max(1, Math.min(Math.floor(requested), 20))
+
     const requests = await prisma.bikeRequest.findMany({
-      where: { seller: { clerkId: sellerClerkId } },
+      where: { sellerId },
       orderBy: { createdAt: 'desc' },
       take: limit,
       select: {
@@ -74,6 +79,7 @@ export async function executeToolCall(
         buyer: { select: { firstname: true, lastname: true } },
       },
     })
+
     return JSON.stringify(
       requests.map((r) => ({
         id: r.id,

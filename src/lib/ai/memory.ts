@@ -1,54 +1,73 @@
 import type { Message } from '@/generated/prisma'
 import { getOpenAI } from '@/lib/open-ai'
 
-/** Keep this many recent messages verbatim in every request. */
-const RECENT_WINDOW = 10
+/** Always keep at least this many of the newest messages word-for-word. */
+const KEEP_RECENT = 10
 
-/**
- * When the total message count exceeds this threshold the older messages
- * (everything outside the recent window) are compressed into a short summary
- * using a cheap model, keeping the context small without losing important
- * context from earlier in the conversation.
- */
-const SUMMARIZE_THRESHOLD = 20
+/** When the word-for-word part grows past this, the oldest ones are folded into the summary. */
+const MAX_VERBATIM = 20
+
+export interface StoredSummary {
+  summary: string | null
+  summarizedCount: number
+}
 
 export interface MessageContext {
-  /** Optional summary of messages older than the recent window. */
   systemSummary: string | null
-  /** The most recent messages to include verbatim in the prompt. */
   recentMessages: Message[]
+  /** Set only when a new summary was made and should be saved to the DB. */
+  summaryUpdate: { summary: string; summarizedCount: number } | null
 }
 
 /**
- * Applies a sliding-window memory strategy to the full message history.
- *
- * - ≤ RECENT_WINDOW messages  → return all, no summary
- * - RECENT_WINDOW < N ≤ SUMMARIZE_THRESHOLD → return last RECENT_WINDOW, no summary
- * - N > SUMMARIZE_THRESHOLD → summarise older messages, return last RECENT_WINDOW
+ * `history` must NOT include the message the user just sent.
+ * The summary covers history[0 .. summarizedCount), everything after is sent verbatim.
  */
-export async function buildMessageContext(messages: Message[]): Promise<MessageContext> {
-  if (messages.length <= RECENT_WINDOW) {
-    return { systemSummary: null, recentMessages: messages }
+export async function buildMessageContext(
+  history: Message[],
+  stored: StoredSummary,
+): Promise<MessageContext> {
+  // If the stored numbers don't match reality (e.g. messages were deleted), start fresh.
+  const isValid =
+    stored.summarizedCount <= history.length &&
+    (stored.summary !== null || stored.summarizedCount === 0)
+
+  let summary = isValid ? stored.summary : null
+  let summarizedCount = isValid ? stored.summarizedCount : 0
+  let verbatim = history.slice(summarizedCount)
+  let summaryUpdate: MessageContext['summaryUpdate'] = null
+
+  if (verbatim.length > MAX_VERBATIM) {
+    const toSummarize = verbatim.slice(0, verbatim.length - KEEP_RECENT)
+
+    try {
+      const merged = (await summariseMessages(summary, toSummarize)).trim()
+      if (merged) {
+        summary = merged
+        summarizedCount += toSummarize.length
+        verbatim = verbatim.slice(toSummarize.length)
+        summaryUpdate = { summary, summarizedCount }
+      }
+    } catch (err) {
+      // Summarizing is a nice-to-have. If it fails, send the longer history instead.
+      console.error('Summary failed, sending full history', err)
+    }
   }
 
-  const recentMessages = messages.slice(-RECENT_WINDOW)
-
-  if (messages.length <= SUMMARIZE_THRESHOLD) {
-    return { systemSummary: null, recentMessages }
-  }
-
-  const olderMessages = messages.slice(0, -RECENT_WINDOW)
-  const rawSummary = await summariseMessages(olderMessages)
-  // Only inject the summary if the model actually returned something meaningful
-  const systemSummary = rawSummary.trim() || null
-
-  return { systemSummary, recentMessages }
+  return { systemSummary: summary, recentMessages: verbatim, summaryUpdate }
 }
 
-async function summariseMessages(messages: Message[]): Promise<string> {
-  const conversationText = messages
+async function summariseMessages(
+  previousSummary: string | null,
+  messages: Message[],
+): Promise<string> {
+  const text = messages
     .map((m) => `${m.Role === 'USER' ? 'User' : 'Assistant'}: ${m.content}`)
     .join('\n')
+
+  const userContent = previousSummary
+    ? `Existing summary:\n${previousSummary}\n\nNew messages:\n${text}`
+    : text
 
   const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
@@ -56,11 +75,13 @@ async function summariseMessages(messages: Message[]): Promise<string> {
       {
         role: 'system',
         content:
-          'Summarise the following conversation in 2-3 sentences, highlighting key topics and any important data mentioned.',
+          'You keep a running summary of a chat between a motorcycle seller and an AI assistant. ' +
+          'Merge the existing summary (if any) with the new messages into one summary of at most 5 sentences. ' +
+          'Keep topics and decisions. Do NOT keep request counts or statuses, because those change and are always looked up live.',
       },
-      { role: 'user', content: conversationText },
+      { role: 'user', content: userContent },
     ],
-    max_tokens: 150,
+    max_tokens: 250,
   })
 
   return response.choices[0]?.message?.content ?? ''
